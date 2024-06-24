@@ -27,38 +27,37 @@ router.get('/users/:userId/clubs', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch clubs' });
   }
 });
-
 // Route to create a new user
 router.post('/users', async (req, res) => {
-  const { id, username, email, fullname, avatar, bio, post, clubs, socials, pears, department, role, coverimg, password, refreshToken } = req.body;
-
-  try {
-    const newUser = await Users.create({
-      id,
-      username,
-      email,
-      fullname,
-      avatar,
-      bio,
-      post,
-      clubs,
-      socials,
-      pears,
-      department,
-      role,
-      coverimg,
-      password,
-      refreshToken,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-
-    res.status(201).json({ message: 'User created successfully', user: newUser });
-  } catch (error) {
-    console.error('Error creating user:', error);
-    res.status(500).json({ message: 'Failed to create user' });
-  }
-});
+    const { id, username, email, fullname, avatar, bio, post, clubs, socials, pears, department, role, coverimg, password, refreshToken } = req.body;
+  
+    try {
+      const newUser = await Users.create({
+        id,
+        username,
+        email,
+        fullname,
+        avatar,
+        bio,
+        post,
+        clubs,
+        socials,
+        pears,
+        department,
+        role,
+        coverimg,
+        password,
+        refreshToken,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+  
+      res.status(201).json(newUser);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ message: 'Failed to create user' });
+    }
+  });
 
 // Route to update user information
 router.put('/users/:userId', async (req, res) => {

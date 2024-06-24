@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 
 // Register routes
 app.use('/api/posts', postsRoutes);
-app.use('/api/users', userRoutes);
+app.use(userRoutes);
 // app.use('/api/admins', adminRoutes);
 
 // Error handling middleware
