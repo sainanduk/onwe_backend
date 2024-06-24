@@ -1,27 +1,31 @@
-// const express = require('express');
-// const bodyParser = require('body-parser');
-// const postsRoutes = require('../onwe/Routes/Post_route'); // Adjust path as per your project structure
-
-// const app = express();
-// app.use(bodyParser.json());
-
-// // Register posts routes
-// app.use('/api', postsRoutes); // Example: /api/posts, /api/posts/:postId
-
-// // Error handling middleware
-// app.use((err, req, res, next) => {
-//   console.error(err.stack);
-//   res.status(500).json({ message: 'Internal Server Error' });
-// });
-
-// // Start the server
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//   console.log(`Server is running on http://localhost:${PORT}`);
-// });
+const express = require('express');
+const bodyParser = require('body-parser');
+const postsRoutes = require('./Routes/Post_route.js'); // Adjust path as per your project structure
+const userRoutes = require('./Routes/userRoutes.js'); // Adjust path as per your project structure
+// const adminRoutes = require('./routes/adminRoutes'); // Adjust path as per your project structure
 const { sequelize, testConnection } = require('./Config/database');
 
-// Import models
+const app = express();
+app.use(bodyParser.json());
+
+// Register routes
+app.use('/api/posts', postsRoutes);
+app.use('/api/users', userRoutes);
+// app.use('/api/admins', adminRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Internal Server Error' });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://127.0.0.1:${PORT}`);
+});
+
+// Define associations (ensure models are imported correctly)
 const Admins = require('./models/Admins');
 const Clubs = require('./models/Clubs');
 const Comments = require('./models/Comments');
