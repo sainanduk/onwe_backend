@@ -1,0 +1,17 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore log files
+*.log
+
+# Ignore environment variables file (if applicable)
+.env
+
+# Ignore build output (if applicable)
+/build/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore JetBrains IDE files (if using WebStorm, PhpStorm, etc.)
+.idea/
