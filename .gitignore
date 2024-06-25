@@ -15,3 +15,5 @@ node_modules/
 
 # Ignore JetBrains IDE files (if using WebStorm, PhpStorm, etc.)
 .idea/
+
+.idx/
