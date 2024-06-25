@@ -47,7 +47,7 @@ const initializeDatabase = async () => {
     await testConnection();
     console.log('Connection to the database has been established successfully.');
 
-    await sequelize.sync({ force: true }); // force: true will drop tables if they exist, use it carefully
+    await sequelize.sync(); // force: true will drop tables if they exist, use it carefully
     console.log('Database and tables have been synced successfully.');
   } catch (error) {
     console.error('Error initializing the database:', error);
