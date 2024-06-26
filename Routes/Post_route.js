@@ -67,7 +67,7 @@ router.post('/posts', async (req, res) => {
   const { title, description, authorId, media, category, tags } = req.body;
 
   try {
-    const [newPost, user] = await Promise.all([
+    const newPost = await 
       Posts.create({
         title,
         description,
@@ -79,16 +79,7 @@ router.post('/posts', async (req, res) => {
         comments: [],
         createdAt: new Date(),
         updatedAt: new Date()
-      }),
-      Users.findByPk(authorId)
-    ]);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    await user.update({ posts: [...user.posts, newPost.id] });
-
+  });
     res.status(201).json({ message: 'Post created successfully', post: newPost });
   } catch (error) {
     console.error('Error creating post:', error);

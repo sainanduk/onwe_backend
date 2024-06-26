@@ -1,7 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const postsRoutes = require("./Routes/Post_route.js"); // Adjust path as per your project structure
-const userRoutes = require("./Routes/userRoutes.js"); // Adjust path as per your project structure
+const userRoutes = require("./Routes/userRoutes.js");
+const commentsRoutes =require("./Routes/Comments_route.js") 
+const usernameRoutes=require("./Routes/username_route.js")
+  // Adjust path as per your project structure
 // const adminRoutes = require('./routes/adminRoutes'); // Adjust path as per your project structure
 const { sequelize, testConnection } = require("./Config/database");
 const { auth } = require("./middlewares/middleware.js");
@@ -10,11 +13,15 @@ const app = express();
 app.use(bodyParser.json());
 
 // Register routes
-app.use(authRoutes);
-app.use("/api/posts", postsRoutes);
-app.use(userRoutes);
-// app.use('/api/admins', adminRoutes);
+app.use(usernameRoutes)
 app.use(auth);
+app.use(authRoutes);
+app.use(postsRoutes);
+app.use(userRoutes);
+app.use(commentsRoutes)
+
+// app.use('/api/admins', adminRoutes);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -42,6 +49,12 @@ Comments.belongsTo(Users, { foreignKey: "userId" });
 Clubs.belongsTo(Users, { foreignKey: "admin" });
 Magazines.belongsTo(Admins, { foreignKey: "owner" });
 Posts.belongsTo(Users, { foreignKey: "authorId" });
+
+Posts.hasMany(Comments, { foreignKey: "postId", as: "postComments" });
+Users.hasMany(Comments, { foreignKey: "userId", as: "userComments" });
+Users.hasMany(Clubs, { foreignKey: "admin", as: "adminClubs" });
+Admins.hasMany(Magazines, { foreignKey: "owner", as: "ownedMagazines" });
+Users.hasMany(Posts, { foreignKey: "authorId", as: "userPosts" });
 
 // Test database connection and sync models
 const initializeDatabase = async () => {

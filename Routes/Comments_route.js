@@ -141,17 +141,8 @@ router.post('/comments', async (req, res) => {
       replies,
       createdAt: new Date()
     });
-
+    console.log("hello");
     // Fetch the related post
-    const post = await Posts.findByPk(postId);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    // Update the comments array in the post
-    const updatedComments = post.comments ? [...post.comments, newComment.id] : [newComment.id];
-    post.comments = updatedComments;
-    await post.save();
 
     res.status(201).json(newComment);
   } catch (error) {

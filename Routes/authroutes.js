@@ -2,7 +2,6 @@ const express = require("express");
 const Users = require("../models/Users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { v4: UUID } = require("uuid");
 const router = express.Router();
 const secret = "mysecretkey";
 router.post("/signup", async (req, res) => {
@@ -39,13 +38,11 @@ router.post("/signin", async (req, res) => {
       );
 
       res.json({ token: accessToken, status: 200 });
-    } else {
+      return
+    }
+     else {
       res.json({ message: "Username or password is incorrect" });
     }
-
-    res.json("SUCCESS", accessToken);
-
-    // Rest of the login logic
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
