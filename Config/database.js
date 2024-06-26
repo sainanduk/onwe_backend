@@ -1,7 +1,8 @@
 const { Sequelize } = require('sequelize');
-
+const dotenv = require('dotenv');
+dotenv.config();
 // Initialize Sequelize instance with database connection details
-const sequelize = new Sequelize('postgresql://onwe_owner:TUaD57zRdqYF@ep-small-rain-a1s4uufq-pooler.ap-southeast-1.aws.neon.tech/onwe', {
+const sequelize = new Sequelize(process.env.NEON_URL, {
   dialect: 'postgres',
   dialectOptions: {
     ssl: {

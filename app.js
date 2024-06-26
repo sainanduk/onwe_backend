@@ -2,9 +2,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const postsRoutes = require("./Routes/Post_route.js"); // Adjust path as per your project structure
 const userRoutes = require("./Routes/userRoutes.js");
-const commentsRoutes =require("./Routes/Comments_route.js") 
-const usernameRoutes=require("./Routes/username_route.js")
-  // Adjust path as per your project structure
+const commentsRoutes = require("./Routes/Comments_route.js");
+const usernameRoutes = require("./Routes/username_route.js");
+// Adjust path as per your project structure
 // const adminRoutes = require('./routes/adminRoutes'); // Adjust path as per your project structure
 const { sequelize, testConnection } = require("./Config/database");
 const { auth } = require("./middlewares/middleware.js");
@@ -12,13 +12,14 @@ const authRoutes = require("./Routes/authroutes.js"); // Adjust path as per your
 const app = express();
 app.use(bodyParser.json());
 
+
 // Register routes
-app.use(usernameRoutes)
+app.use(usernameRoutes);
 app.use(auth);
 app.use(authRoutes);
 app.use(postsRoutes);
 app.use(userRoutes);
-app.use(commentsRoutes)
+app.use(commentsRoutes);
 
 // app.use('/api/admins', adminRoutes);
 
