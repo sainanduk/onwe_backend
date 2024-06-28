@@ -1,9 +1,9 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../Config/database');
+const { sequelize } = require('../config/database');
 
 const Users = sequelize.define('users', {
   id: { type: DataTypes.STRING, primaryKey: true },
-  username: DataTypes.STRING, unique: true,
+  username: { type: DataTypes.STRING, unique: true },
   email: DataTypes.STRING,
   fullname: DataTypes.STRING,
   avatar: DataTypes.STRING,
@@ -13,6 +13,7 @@ const Users = sequelize.define('users', {
   coverimg: DataTypes.STRING,
   password: DataTypes.STRING,
   refreshToken: DataTypes.STRING,
+  clubs: {type: DataTypes.ARRAY(DataTypes.INTEGER),defaultValue: []},
   createdAt: DataTypes.DATE,
   updatedAt: DataTypes.DATE,
 });

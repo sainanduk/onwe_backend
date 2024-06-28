@@ -70,36 +70,22 @@ router.get('/posts/:category', async (req, res) => {
   
   //create new post
   router.post('/posts', async (req, res) => {
-    const { title, description, authorId, media, category, tags } = req.body;
+    const { title, description, userid, media, category, tags, clubid } = req.body;
   
     try {
-      // Concurrently create new post and find user by their ID
-      const [newPost, user] = await Promise.all([
-        Posts.create({
-          title,
-          description,
-          likes: 0,
-          authorId,
-          media,
-          category,
-          tags,
-          comments: [],
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }),
-        Users.findByPk(authorId)
-      ]);
-  
-      
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      await Promise.all([
-        user.update({
-          posts: [...user.posts, newPost.id]
-        }),
-      ]);
+      // Create new post
+      const newPost = await Posts.create({
+        title,
+        description,
+        likes: 0,
+        userid,
+        media,
+        category,
+        tags,
+        clubid,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
   
       res.status(201).json({ message: 'Post created successfully', post: newPost });
     } catch (error) {

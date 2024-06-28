@@ -1,16 +1,16 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../Config/database');
+const { sequelize } = require('../config/database');
 
 const Posts = sequelize.define('posts', {
-  id: { type: DataTypes.STRING, primaryKey: true },
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: DataTypes.STRING,
   description: DataTypes.STRING,
   likes: DataTypes.INTEGER,
-  authorId: { type: DataTypes.STRING, references: { model: 'users', key: 'id' } },
-  media: DataTypes.ARRAY(DataTypes.JSONB),
+  userid: { type: DataTypes.STRING, references: { model: 'users', key: 'id' } },
+  media: { type: DataTypes.ARRAY(DataTypes.BLOB('long')), allowNull: true },
   category: DataTypes.STRING,
   tags: DataTypes.STRING,
-  comments: DataTypes.ARRAY(DataTypes.STRING),
+  clubid: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
   createdAt: DataTypes.DATE,
   updatedAt: DataTypes.DATE,
 });
