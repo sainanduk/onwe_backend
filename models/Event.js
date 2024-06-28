@@ -11,8 +11,8 @@ const Event = sequelize.define('event', {
   subtitle: DataTypes.STRING,
   dateOfEvent: DataTypes.DATE,
   description: DataTypes.STRING,
-  user_remind: DataTypes.ARRAY(DataTypes.INTEGER),
   category: DataTypes.STRING,
+  coverImage: DataTypes.STRING, // Added coverImage field
   createdAt: DataTypes.DATE,
   updatedAt: DataTypes.DATE,
 });
