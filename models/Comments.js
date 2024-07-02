@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database'); // adjust the path as necessary
+const {sequelize} = require('../Config/database'); // adjust the path as necessary
 
 const Comments = sequelize.define('comments', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

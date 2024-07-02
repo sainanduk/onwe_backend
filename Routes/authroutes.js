@@ -25,7 +25,7 @@ const secret = process.env.SECRET_KEY;
 //   }
 // });
 
-router.post("/signin", async (req, res) => {
+router.post("/Adminsignin", async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await Users.findOne({ where: { username: username } });
@@ -49,16 +49,16 @@ router.post("/signin", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-app.post("/api/webhook", (req, res) => {
-  const event = req.body;
+// app.post("/api/webhook", (req, res) => {
+//   const event = req.body;
 
-  if (event.type === 'user.created') {
-    const user = event.data;
-    // Handle new user creation, e.g., save to your database
-    console.log('New user created:', user.id);
-  }
+//   if (event.type === 'user.created') {
+//     const user = event.data;
+//     // Handle new user creation, e.g., save to your database
+//     console.log('New user created:', user.id);
+//   }
 
-  res.status(200).send('Event received');
-});
+//   res.status(200).send('Event received');
+// });
 
 module.exports = router;

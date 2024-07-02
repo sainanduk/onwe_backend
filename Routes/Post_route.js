@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Posts = require('../models/posts');
-const Users = require('../models/users');
+const Posts = require('../models/Posts');
 
 //get all posts
 router.get('/posts', async (req, res) => {
@@ -116,3 +115,4 @@ router.get('/posts/:category', async (req, res) => {
       res.status(500).json({ message: 'Failed to delete post' });
     }
   });
+module.exports=router

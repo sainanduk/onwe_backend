@@ -103,7 +103,7 @@ router.put('/events/:id', isAdmin, upload.single('coverImage'), async (req, res)
   const { id } = req.params;
   const { title, subtitle, dateOfEvent, description, category } = req.body;
 
-  try {
+  try {// Define associations (ensure models are imported correctly)
     const event = await Event.findByPk(id);
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
@@ -114,7 +114,7 @@ router.put('/events/:id', isAdmin, upload.single('coverImage'), async (req, res)
       coverImageUrl = await uploadImageToGCS(req.file);
     }
 
-    await event.update({
+    await event.up({// Define associations (ensure models are imported correctly)date({
       title,
       subtitle,
       dateOfEvent,
@@ -125,7 +125,7 @@ router.put('/events/:id', isAdmin, upload.single('coverImage'), async (req, res)
     });
 
     res.json({ message: 'Event updated successfully', event });
-  } catch (error) {
+  }catch (error) {
     console.error('Error updating event:', error);
     res.status(500).json({ message: 'Failed to update event' });
   }
