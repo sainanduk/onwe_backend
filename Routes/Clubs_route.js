@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Clubs = require('../models/Clubs');
-const User = require('../models/users');
+const User = require('../models/Users');
 const { Op } = require('sequelize');
-const Posts = require('../models/posts');
+const Posts = require('../models/Posts');
+const uploadimages = require('../middlewares/uploadimages');
+const processimages = require('../middlewares/processimages');
 
 //search all clubs in which the user is there
 router.post('/clubs/by-user', async (req, res) => {
@@ -85,7 +87,6 @@ router.get('/clubs/search', async (req, res) => {
   }
 });
 
-
 // Route to join a club and increment members count
 router.post('/clubs/join', async (req, res) => {
   const { userId, clubId } = req.body;
@@ -94,6 +95,11 @@ router.post('/clubs/join', async (req, res) => {
     const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    const club = await Clubs.findByPk(clubId);
+    if (!club) {
+      return res.status(404).json({ message: 'Club not found' });
     }
 
     // Check if user is already a member
@@ -120,5 +126,93 @@ router.post('/clubs/join', async (req, res) => {
     res.status(500).json({ message: 'Failed to join club' });
   }
 });
-  module.exports = router;
+
+
+
+// Route to make an announcement
+router.post('/clubs/announcement', isAdmin,uploadimages, processimages, async (req, res) => {
+  const { userId, clubId, message,title,tags} = req.body;
+
+  try {
+    const club = await Clubs.findByPk(clubId);
+
+    if (!club) {
+      return res.status(404).json({ message: 'Club not found' });
+    }
+
+    // Create a new post for the announcement
+    const newPost = await Posts.create({
+      title: title,
+      description: message,
+      likes: 0,
+      userid: userId,
+      media: req.mediaData,
+      category: 'announcement',
+      tags: tags,
+      clubid: clubId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    res.status(201).json({ message: 'Announcement made successfully', post: newPost });
+  } catch (error) {
+    console.error('Error making announcement:', error);
+    res.status(500).json({ message: 'Failed to make announcement' });
+  }
+});
+
+// Route to get all announcements for a specific club
+router.get('/clubs/:clubId/announcements', async (req, res) => {
+  const { clubId } = req.params;
+
+  try {
+    const announcements = await Posts.findAll({
+      where: {
+        clubid: clubId,
+        category: 'announcement'
+      }
+    });
+
+    if (announcements.length === 0) {
+      return res.status(404).json({ message: 'No announcements found for this club' });
+    }
+
+    res.status(200).json({ announcements });
+  } catch (error) {
+    console.error('Error fetching announcements:', error);
+    res.status(500).json({ message: 'Failed to fetch announcements' });
+  }
+});
+
+// make a user as admin
+router.post('/clubs/:clubId/make-admin', isAdmin, async (req, res) => {
+  const { username } = req.body;
+  const { club } = req;
+
+  try {
+    // Find the user by username
+    const user = await User.findOne({ where: { username } });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the user is already an admin
+    if (club.admins.includes(user.id)) {
+      return res.status(400).json({ message: 'User is already an admin of the club' });
+    }
+
+    // Add the user's ID to the club's admins array
+    club.admins.push(user.id);
+
+    // Save the updated club
+    await club.save();
+
+    res.status(200).json({ message: 'User has been made an admin', club });
+  } catch (error) {
+    console.error('Error making user an admin:', error);
+    res.status(500).json({ message: 'Failed to make user an admin' });
+  }
+});
+module.exports = router;
   

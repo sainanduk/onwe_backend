@@ -2,7 +2,11 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../Config/database');
 
 const Admins = sequelize.define('admins', {
-  id: { type: DataTypes.STRING, primaryKey: true },
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   username: DataTypes.STRING,
   email: DataTypes.STRING,
   fullname: DataTypes.STRING,

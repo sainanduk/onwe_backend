@@ -1,21 +1,39 @@
 const express = require('express');
 const router = express.Router();
-const Posts = require('../models/posts');
-const Users = require('../models/users');
-
-//get all posts
+const Posts = require('../models/Posts');
+const uploadimages = require('../middlewares/uploadimages');
+const processimages = require('../middlewares/processimages');
+const Comments = require('../models/Comments')
+// Route to get all posts
 router.get('/posts', async (req, res) => {
-    try {
-      const posts = await Posts.findAll();
-      res.json(posts);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      res.status(500).json({ message: 'Failed to fetch posts' });
-    }
-  });
+  try {
+    const posts = await Posts.findAll({
+      where: {
+        clubid: null
+      }
+    });
+
+    // Convert each post to JSON and enrich as needed
+    const enrichedPosts = posts.map(post => {
+      const enrichedPost = post.toJSON(); // Convert Sequelize instance to JSON object
+
+      // Assuming `media` is a property containing image buffer(s)
+      enrichedPost.media = enrichedPost.media.map(imageBuffer => {
+        return Buffer.from(imageBuffer).toString('base64');
+      });
+
+      return enrichedPost;
+    });
+
+    res.json(enrichedPosts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ message: 'Failed to fetch posts' });
+  }
+});
 
 //getpost by category
-router.get('/posts/:category', async (req, res) => {
+router.get('/posts/category/:category', async (req, res) => {
   const { category } = req.params;
 
   try {
@@ -69,30 +87,31 @@ router.get('/posts/:category', async (req, res) => {
 
   
   //create new post
-  router.post('/posts', async (req, res) => {
-    const { title, description, userid, media, category, tags, clubid } = req.body;
-  
+  router.post('/posts', uploadimages, processimages, async (req, res) => {
+    const { title, description,category, tags, clubid } = req.body;
+    const userid = req.session.sub; // Extract user ID from headers
+
     try {
-      // Create new post
-      const newPost = await Posts.create({
-        title,
-        description,
-        likes: 0,
-        userid,
-        media,
-        category,
-        tags,
-        clubid,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-  
-      res.status(201).json({ message: 'Post created successfully', post: newPost });
+        // Create new post
+        const newPost = await Posts.create({
+            title,
+            description,
+            likes: 0,
+            userid,
+            media: req.mediaData.map(img => img.buffer),
+            category,
+            tags,
+            clubid,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        res.status(201).json({ message: 'Post created successfully'});
     } catch (error) {
-      console.error('Error creating post:', error);
-      res.status(500).json({ message: 'Failed to create post' });
+        console.error('Error creating post:', error);
+        res.status(500).json({ message: 'Failed to create post' });
     }
-  });
+});
 
   //delete post 
 
@@ -106,13 +125,20 @@ router.get('/posts/:category', async (req, res) => {
         return res.status(404).json({ message: 'Post not found' });
       }
   
+      // Delete all comments associated with the postId
+      await Comments.destroy({
+        where: { postId: postId }
+      });
+  
       // Delete the post
       await post.destroy();
   
       // Respond with success message
-      res.json({ message: 'Post deleted successfully' });
+      res.json({ message: 'Post and associated comments deleted successfully' });
     } catch (error) {
-      console.error('Error deleting post:', error);
-      res.status(500).json({ message: 'Failed to delete post' });
+      console.error('Error deleting post and comments:', error);
+      res.status(500).json({ message: 'Failed to delete post and comments' });
     }
   });
+  
+module.exports=router
