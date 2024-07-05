@@ -6,6 +6,7 @@ const processimages = require('../middlewares/processimages');
 const Comments = require('../models/Comments')
 // Route to get all posts
 router.get('/posts', async (req, res) => {
+
   try {
     const posts = await Posts.findAll({
       where: {
@@ -24,7 +25,7 @@ router.get('/posts', async (req, res) => {
 
       return enrichedPost;
     });
-
+    
     res.json(enrichedPosts);
   } catch (error) {
     console.error('Error fetching posts:', error);
