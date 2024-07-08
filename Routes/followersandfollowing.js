@@ -4,7 +4,7 @@ const UserFollowing = require('../models/userfollowing'); // Adjust the path as 
 
 // Route to check if user is following another user
 router.get('/check-follow', async (req, res) => {
-  const { username, followUsername } = req.query;
+  const { username, followUsername } = req.body;
 
   try {
     // Check if there is a record in UserFollowing for the given pair of usernames
@@ -69,5 +69,24 @@ router.post('/unfollow', async (req, res) => {
       res.status(500).json({ message: 'Failed to unfollow user' });
     }
   });  
+
+
+  // Route to get count of followers and following
+// router.get('/followers-following-count/:username', async (req, res) => {
+//   const { username } = req.params;
+
+//   try {
+//     // Count of users following the given username
+//     const followersCount = await UserFollowers.count({ where: { userId: username } });
+
+//     // Count of users whom the given username is following
+//     const followingCount = await UserFollowing.count({ where: { userId: username } });
+
+//     res.status(200).json({ followersCount, followingCount });
+//   } catch (error) {
+//     console.error('Error fetching followers and following count:', error);
+//     res.status(500).json({ message: 'Failed to fetch followers and following count' });
+//   }
+// });
 
 module.exports = router;

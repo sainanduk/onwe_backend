@@ -1,52 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const { Storage } = require('@google-cloud/storage');
 const Event = require('../models/Event');
-const isAdmin = require('../middlewares/adminCheck'); // Admin check middleware
-
-const storage = new Storage();
-const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
-
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // no larger than 5mb
-  },
-});
-
-// Helper function to upload a file to Google Cloud Storage
-const uploadImageToGCS = (file) => {
-  return new Promise((resolve, reject) => {
-    if (!file) {
-      reject('No image file');
-    }
-
-    const newFileName = `${Date.now()}_${file.originalname}`;
-    const fileUpload = bucket.file(newFileName);
-
-    const blobStream = fileUpload.createWriteStream({
-      metadata: {
-        contentType: file.mimetype,
-      },
-    });
-
-    blobStream.on('error', (error) => reject(error));
-
-    blobStream.on('finish', () => {
-      fileUpload.makePublic().then(() => {
-        resolve(`https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`);
-      });
-    });
-
-    blobStream.end(file.buffer);
-  });
-};
+const isAdmin = require('../middlewares/adminCheck');
+const createMulterUpload = require('../middlewares/uploadimages');
+const processimages = require('../middlewares/processimages');
+const verifier = require('../middlewares/verifier');
+const uploadimages = createMulterUpload();
 
 // Get all events
-router.get('/events', async (req, res) => {
+router.get('/events',verifier, async (req, res) => {
   try {
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      attributes: ['title', 'media','dateOfEvent']
+    });
     res.json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
@@ -71,68 +37,68 @@ router.get('/events/:id', async (req, res) => {
 });
 
 // Create a new event (admin only)
-router.post('/events', isAdmin, upload.single('coverImage'), async (req, res) => {
-  const { title, subtitle, dateOfEvent, description, category } = req.body;
+router.post('/Admin/events', uploadimages, processimages, async (req, res) => {
+  const { title, subtitle, dateOfEvent, description, category,time} = req.body;
+  //const userid = req.session.sub
 
   try {
-    let coverImageUrl = '';
-    if (req.file) {
-      coverImageUrl = await uploadImageToGCS(req.file);
-    }
-
+    // Create new post
     const newEvent = await Event.create({
       title,
       subtitle,
       dateOfEvent,
       description,
       category,
-      coverImage: coverImageUrl,
+      time,
+      media: req.mediaData.map(img => img.base64String),
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    res.status(201).json(newEvent);
+    res.status(201).json({ message: 'Event created successfully',event: newEvent});
   } catch (error) {
-    console.error('Error creating event:', error);
-    res.status(500).json({ message: 'Failed to create event' });
+    console.error('Error creating post:', error);
+    res.status(500).json({ message: 'Failed to create post' });
   }
 });
 
 // Update an event (admin only)
-router.put('/events/:id', isAdmin, upload.single('coverImage'), async (req, res) => {
-  const { id } = req.params;
-  const { title, subtitle, dateOfEvent, description, category } = req.body;
+router.patch('Admin/events/:id',isAdmin, uploadimages, processimages, async (req, res) => {
+  const { title, subtitle, dateOfEvent, description, category, time } = req.body;
+  const eventId = req.params.id;
 
-  try {// Define associations (ensure models are imported correctly)
-    const event = await Event.findByPk(id);
+  try {
+    // Find the event by ID
+    const event = await Event.findByPk(eventId);
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    let coverImageUrl = event.coverImage;
-    if (req.file) {
-      coverImageUrl = await uploadImageToGCS(req.file);
+    // Update event details
+    event.title = title || event.title;
+    event.subtitle = subtitle || event.subtitle;
+    event.dateOfEvent = dateOfEvent || event.dateOfEvent;
+    event.description = description || event.description;
+    event.category = category || event.category;
+    event.time = time || event.time;
+
+    // Update media if new files are uploaded
+    if (req.mediaData && req.mediaData.length > 0) {
+      event.media = req.mediaData.map(img => img.base64String);
     }
 
-    await event.up({// Define associations (ensure models are imported correctly)date({
-      title,
-      subtitle,
-      dateOfEvent,
-      description,
-      category,
-      coverImage: coverImageUrl,
-      updatedAt: new Date(),
-    });
+    // Save the updated event
+    await event.save();
 
-    res.json({ message: 'Event updated successfully', event });
-  }catch (error) {
+    res.status(200).json({ message: 'Event updated successfully', event });
+  } catch (error) {
     console.error('Error updating event:', error);
     res.status(500).json({ message: 'Failed to update event' });
   }
 });
 
 // Delete an event (admin only)
-router.delete('/events/:id', isAdmin, async (req, res) => {
+router.delete('Admin/events/:id', isAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {

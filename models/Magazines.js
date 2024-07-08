@@ -7,7 +7,7 @@ const Magazines = sequelize.define('magazines', {
     primaryKey: true,
     autoIncrement: true,
   },
-  imageFile: DataTypes.BLOB('long'),
+  media: DataTypes.ARRAY(DataTypes.TEXT),
   owner: { type: DataTypes.INTEGER, references: { model: 'admins', key: 'id' } },
   title: DataTypes.STRING,
   description: DataTypes.STRING,

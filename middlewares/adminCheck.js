@@ -1,13 +1,26 @@
-const Admins = require('../models/Admins'); // Assuming you have an Admins model
+const dotenv = require('dotenv');
+dotenv.config();
+const isAdmin = (req, res, next) => {
+  const authHeader = req.header('Authorization');
 
-const isAdmin = async (req, res, next) => {
-  const { userId } = req.body; // Adjust this to where you get your userId from, e.g., from req.user if using a JWT
-
-  const admin = await Admins.findByPk(userId);
-  if (!admin) {
-    return res.status(403).json({ message: 'Forbidden: Only admins can perform this action' });
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Access denied, token missing!' });
   }
-  next();
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied, token missing!' });
+  }
+
+  try {
+    const verified = jwt.verify(token, process.env.SECRET_KEY);
+    req.user = verified;
+    next();
+  } catch (error) {
+    res.status(400).json({ error: 'Invalid token' });
+  }
 };
 
 module.exports = isAdmin;
+

@@ -1,18 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const Magazines = require('../models/Magazines');
-const multer = require('multer');
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const isAdmin = require('../middlewares/adminCheck')
 
 // Post magazine route
-router.post('/magazines', upload.single('imageFile'), async (req, res) => {
+router.post('/magazines', isAdmin, uploadimages, processimages, async (req, res) => {
   try {
     const { owner, title, description, likes, isPublished } = req.body;
-    const imageFile = req.file.buffer;
 
     const newMagazine = await Magazines.create({
-      imageFile,
+      media:req.imageData.map(img => img.base64String),
       owner,
       title,
       description,

@@ -11,11 +11,10 @@ const processimages = async (req, res, next) => {
           filename: file.originalname,
           mimetype: file.mimetype,
           size: file.size,
-          buffer: file.buffer
+          base64String: file.buffer.toString('base64')
         });
       }
     }
-
     next();
   } catch (error) {
     console.error('Error processing images:', error);
