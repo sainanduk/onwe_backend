@@ -1,19 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const Magazines = require('../models/Magazines');
-const isAdmin = require('../middlewares/adminCheck')
-
+const createMulterUpload = require('../middlewares/uploadimages');
+const processimages = require('../middlewares/processimages');
+const uploadimages = createMulterUpload(); // Initialize multer middleware
+const verifier = require('../middlewares/verifier');
 // Post magazine route
-router.post('/magazines', isAdmin, uploadimages, processimages, async (req, res) => {
+router.post('/magazines', uploadimages, processimages, async (req, res) => {
+
+  if (!req.mediaData) {
+    return res.status(400).json({ error: 'Media data is missing' });
+  }
   try {
     const { owner, title, description, likes, isPublished } = req.body;
 
     const newMagazine = await Magazines.create({
-      media:req.imageData.map(img => img.base64String),
       owner,
       title,
       description,
       likes,
+      media:req.mediaData.map(img => img.base64String),
       isPublished,
       createdAt: new Date(),
     });
@@ -25,7 +31,7 @@ router.post('/magazines', isAdmin, uploadimages, processimages, async (req, res)
 });
 
 // Get magazines route
-router.get('/magazines', async (req, res) => {
+router.get('/magazines', verifier,async (req, res) => {
   try {
     const magazines = await Magazines.findAll();
     res.status(200).json(magazines);

@@ -81,11 +81,11 @@ router.post("/api/webhook", async (req, res) => {
 
     try {
       // Check if the user already exists by ID
-      const exist = await Users.findOne({ where: { id: userId } });
+      const exist = await Users.findOne({ where: { username: username,id:userId } });
       if (exist) {
-        // console.log(`User with ID ${userId} already exists.`);
-        // return res.status(200).json({ message: "User already exists" });
-        return
+        console.log(`User with ID ${userId} already exists.`);
+        return res.status(200).json({ message: "User already exists" });
+        
       }
 
       // Create a new user

@@ -2,12 +2,13 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../Config/database');
 
 const Clubs = sequelize.define('clubs', {
-  id: { type: DataTypes.STRING, primaryKey: true },
-  name: DataTypes.STRING,
-  admins: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },
+  clubId: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  clubName: DataTypes.STRING,
   members: DataTypes.INTEGER,
-  coverimage: { type: DataTypes.BLOB('long'), allowNull: false },
+  coverImage: { type: DataTypes.BLOB('long'), allowNull: false },
+  slogan: DataTypes.STRING,
   createdAt: DataTypes.DATE,
+  updatedAt: DataTypes.DATE,
 });
 
 module.exports = Clubs;

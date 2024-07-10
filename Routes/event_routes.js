@@ -11,7 +11,7 @@ const uploadimages = createMulterUpload();
 router.get('/events',verifier, async (req, res) => {
   try {
     const events = await Event.findAll({
-      attributes: ['title', 'media','dateOfEvent']
+      attributes: ["id",'title', 'media','dateOfEvent','description','time',"subtitle","category"]
     });
     res.json(events);
   } catch (error) {

@@ -6,10 +6,11 @@ const createMulterUpload = require('../middlewares/uploadimages');
 const processimages = require('../middlewares/processimages');
 const Comments = require('../models/Comments');
 const Users = require('../models/Users');
+const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 // Route to get all posts
-router.get('/posts', async (req, res) => {
-  const { userId } = req.body; // Assuming userId is obtained from authentication or session
+router.get('/posts',verifier, async (req, res) => {
+  const userId = req.session.sub; // Assuming userId is obtained from the session
 
   try {
     // Find all posts where clubid is null
@@ -35,6 +36,7 @@ router.get('/posts', async (req, res) => {
       title: post.title,
       description: post.description,
       userid: post.userid,
+      username: post.user ? post.user.username : null, // Access the username from the included User model
       likes: post.likes,
       tags: post.tags,
       media: post.media,

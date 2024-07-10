@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors =require('cors')
 const postsRoutes = require('./Routes/Post_route.js'); 
 const commentsRoutes = require('./Routes/Comments_route.js');
 const usernameRoutes = require('./Routes/username_route.js');
@@ -8,6 +9,7 @@ const authRoutes = require('./Routes/authroutes.js')
 const searchRoute = require('./Routes/search_route.js')
 const UserFollowing = require('./models/userfollowing');
 const UserFollowers = require('./models/userfollowers');
+const mobileLogin = require("./mobile/routes/signin.js");
 const Admins = require('./models/Admins');
 const Clubs = require('./models/Clubs');
 const Comments = require('./models/Comments');
@@ -20,19 +22,22 @@ const EventRoutes =require('./Routes/event_routes.js')
 const UserUpdateRoute = require('./Routes/Users_route.js')
 const PostLikes = require('./models/postlikes.js')
 const FollowersFollowing =require('./Routes/followersandfollowing.js')
-const cors =require('cors')
-
+const magazineRoutes=require('./Routes/magazines_route.js')
+const ClubStatus =require('./models/clubstatuses.js')
 const app = express();
 app.use(bodyParser.json());
 app.use(cors())
 
 app.use(authRoutes);
+app.use(magazineRoutes);
 app.use(EventRoutes)
 app.use(postsRoutes);
-app.use(searchRoute)
+app.use(searchRoute);
+app.use(mobileLogin);
 app.use('/api',verifier,UserUpdateRoute)
 app.use('/api',verifier,commentsRoutes);
 app.use('/api',verifier,FollowersFollowing)
+
 
 
 app.use((err, req, res, next) => {
@@ -92,9 +97,14 @@ Admins.hasMany(Magazines, { foreignKey: "owner", as: "ownedMagazines" });
 // User followers and following associations
 UserFollowers.belongsTo(Users, { foreignKey: 'followerId', as: 'follower' });
 UserFollowing.belongsTo(Users, { foreignKey: 'followingId', as: 'followed' });
+PostLikes.belongsTo(Posts, { foreignKey: 'postId' });
+PostLikes.belongsTo(Users, { foreignKey: 'userId' });
 
+Clubs.hasMany(ClubStatus, { foreignKey: 'clubId' });
+Users.hasMany(ClubStatus, { foreignKey: 'userId' });
 
-
+ClubStatus.belongsTo(Clubs, { foreignKey: 'clubId' });
+ClubStatus.belongsTo(Users, { foreignKey: 'userId' });
 const initializeDatabase = async () => {
   try {
     await sequelize.authenticate();
