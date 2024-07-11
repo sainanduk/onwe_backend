@@ -166,53 +166,47 @@ router.get('/posts/category/:category', async (req, res) => {
   
 
   router.patch('/posts/like',verifier, async (req, res) => {
-    let userId  = req.session.sub;
+    const userId  = req.session.sub;
     console.log(req.session);
-    const {postId}  = req.body; // Assuming userId is obtained from authentication or session
-    //const userId =req.session.sub
-    console.log(userId);
-    console.log(postId);
+    const {postId}  = req.body; 
+    if(!postId || userId){
+      return res.json({message:"cannot like posts"})   
+     }
     try {
-      // Check if the user has already liked the post
+      
       const existingLike = await PostLikes.findOne({
         where: {
           postId: postId,
           userId: userId
         }
       });
-      // userId ="user_2j35UsWgmCmlqx90f0VOS1ph63q"
-      console.log(existingLike);
-      // if (existingLike) {
-      //   // User already liked the post, so unlike it
-      //   await PostLikes.destroy({
-      //     where: {
-      //       postId: postId,
-      //       userId: userId
-      //     }
-      //   });
+      if (existingLike) {
+        await PostLikes.destroy({
+          where: {
+            postId: postId,
+            userId: userId
+          }
+        });
+        const post = await Posts.findByPk(postId);
+        if (post) {
+          await post.decrement('likes');
+        }
   
-      // //   // Decrement likes count in Posts table
-      //   const post = await Posts.findByPk(postId);
-      //   if (post) {
-      //     await post.decrement('likes');
-      //   }
-  
-      //   res.json({ liked: false });
-      // } else {
-        // User has not liked the post, so like it
+        res.json({ liked: false });
+      } else {
+
         const pstlike=await PostLikes.create({
           postId: postId,
           userId: userId
         });
-  console.log(pstlike);
-        // Increment likes count in Posts table
+    
         const post = await Posts.findByPk(postId);
         if (post) {
           await post.increment('likes');
         }
   
         res.json({ liked: true });
-      }
+      }}
     catch (error) {
       console.error('Error updating likes:', error);
       res.status(500).json({ message: 'Failed to update likes' });
