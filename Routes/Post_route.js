@@ -10,10 +10,10 @@ const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 // Route to get all posts
 router.get('/posts', verifier, async (req, res) => {
-  const userId = req.session.sub; // Assuming userId is obtained from the session
+  const userId = req.session.sub
 
   try {
-    // Find all posts where clubid is null
+
     const posts = await Posts.findAll({
       where: { clubid: null },
       include: [
@@ -26,7 +26,7 @@ router.get('/posts', verifier, async (req, res) => {
           model: PostLikes,
           as: 'postLikes',
           where: { userId: userId },
-          required: false // Use required: false to perform a LEFT OUTER JOIN
+          required: false 
         }
       ],
       order: [['createdAt', 'DESC']]
