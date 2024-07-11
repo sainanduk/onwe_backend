@@ -167,7 +167,6 @@ router.get('/posts/category/:category', async (req, res) => {
 
   router.patch('/posts/like',verifier, async (req, res) => {
     const userId  = req.session.sub;
-    console.log(req.session);
     const {postId}  = req.body; 
     if(!postId || userId){
       return res.json({message:"cannot like posts"})   
