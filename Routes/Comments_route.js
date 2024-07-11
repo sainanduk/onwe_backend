@@ -7,6 +7,7 @@ const Users = require('../models/Users')
 // Route to get all comments for a specific post by postId
 router.get('/posts/:postId/comments', async (req, res) => {
     const { postId } = req.params;
+    console.log(postId)
   
     try {
       const comments = await Comments.findAll({
@@ -81,8 +82,8 @@ router.get('/subcomments', async (req, res) => {
   
 // Route to create a new comment and update the post's comments array
 router.post('/comments', async (req, res) => {
-  const { postId,  content,parentId} = req.body;
-  const userId = req.session.sub
+  const { postId,  content,parentId,userId} = req.body;
+  //const userId = req.session.sub
 
   try {
     // Create the new comment

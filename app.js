@@ -36,8 +36,9 @@ app.use(postsRoutes);
 app.use(searchRoute);
 app.use(mobileLogin);
 app.use(ExploreRoutes)
+app.use(commentsRoutes);
 app.use('/api',verifier,UserUpdateRoute)
-app.use('/api',verifier,commentsRoutes);
+
 app.use('/api',verifier,FollowersFollowing)
 
 
