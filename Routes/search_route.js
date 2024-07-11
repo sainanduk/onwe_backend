@@ -34,13 +34,13 @@ router.get('/users/:id', async (req, res) => {
   try {
     // Fetch user details
     const userPromise = Users.findByPk(id, {
-      attributes: ['id', 'username', 'avatar']
+      attributes: ['username', 'avatar']
     });
 
     // Fetch user's posts
     const postsPromise = Posts.findAll({
-      where: { userid: id },
-      attributes: ['id', 'title', 'description', 'likes', 'media', 'createdAt', 'updatedAt']
+      where: { userid: id,clubid:null},
+      attributes: ['id', 'title', 'description', 'likes', 'media', 'createdAt']
     });
 
     // Fetch followers count

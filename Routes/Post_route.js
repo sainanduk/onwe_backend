@@ -9,7 +9,7 @@ const Users = require('../models/Users');
 const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 // Route to get all posts
-router.get('/posts',verifier, async (req, res) => {
+router.get('/posts', verifier, async (req, res) => {
   const userId = req.session.sub; // Assuming userId is obtained from the session
 
   try {
@@ -19,15 +19,17 @@ router.get('/posts',verifier, async (req, res) => {
       include: [
         {
           model: Users,
+          as: 'user',
           attributes: ['avatar', 'username']
         },
         {
           model: PostLikes,
-          as: 'postLikes', // Specify the alias used in the association
+          as: 'postLikes',
           where: { userId: userId },
           required: false // Use required: false to perform a LEFT OUTER JOIN
         }
-      ]
+      ],
+      order: [['createdAt', 'DESC']]
     });
 
     // Map posts to transform Sequelize objects into plain JSON
@@ -36,6 +38,7 @@ router.get('/posts',verifier, async (req, res) => {
       title: post.title,
       description: post.description,
       userid: post.userid,
+      avatar:post.user.avatar,
       username: post.user ? post.user.username : null, // Access the username from the included User model
       likes: post.likes,
       tags: post.tags,
@@ -107,9 +110,9 @@ router.get('/posts/category/:category', async (req, res) => {
   //create new post
  
 
-  router.post('/posts', uploadimages, processimages, async (req, res) => {
-    const { title, description,category, tags, clubid,userid } = req.body;
-    //const userid = req.session.sub
+  router.post('/posts', verifier,uploadimages, processimages, async (req, res) => {
+    const { title, description,category, tags, clubid } = req.body;
+    const userid = req.session.sub
   
     try {
       // Create new post
@@ -162,10 +165,13 @@ router.get('/posts/category/:category', async (req, res) => {
   });
   
 
-  router.patch('/posts/:postId/like', async (req, res) => {
-    const { postId } = req.params;
-    const { userId } = req.body; // Assuming userId is obtained from authentication or session
+  router.patch('/posts/like',verifier, async (req, res) => {
+    let userId  = req.session.sub;
+    console.log(req.session);
+    const {postId}  = req.body; // Assuming userId is obtained from authentication or session
     //const userId =req.session.sub
+    console.log(userId);
+    console.log(postId);
     try {
       // Check if the user has already liked the post
       const existingLike = await PostLikes.findOne({
@@ -174,30 +180,31 @@ router.get('/posts/category/:category', async (req, res) => {
           userId: userId
         }
       });
+      // userId ="user_2j35UsWgmCmlqx90f0VOS1ph63q"
+      console.log(existingLike);
+      // if (existingLike) {
+      //   // User already liked the post, so unlike it
+      //   await PostLikes.destroy({
+      //     where: {
+      //       postId: postId,
+      //       userId: userId
+      //     }
+      //   });
   
-      if (existingLike) {
-        // User already liked the post, so unlike it
-        await PostLikes.destroy({
-          where: {
-            postId: postId,
-            userId: userId
-          }
-        });
+      // //   // Decrement likes count in Posts table
+      //   const post = await Posts.findByPk(postId);
+      //   if (post) {
+      //     await post.decrement('likes');
+      //   }
   
-        // Decrement likes count in Posts table
-        const post = await Posts.findByPk(postId);
-        if (post) {
-          await post.decrement('likes');
-        }
-  
-        res.json({ liked: false });
-      } else {
+      //   res.json({ liked: false });
+      // } else {
         // User has not liked the post, so like it
-        await PostLikes.create({
+        const pstlike=await PostLikes.create({
           postId: postId,
           userId: userId
         });
-  
+  console.log(pstlike);
         // Increment likes count in Posts table
         const post = await Posts.findByPk(postId);
         if (post) {
@@ -206,7 +213,7 @@ router.get('/posts/category/:category', async (req, res) => {
   
         res.json({ liked: true });
       }
-    } catch (error) {
+    catch (error) {
       console.error('Error updating likes:', error);
       res.status(500).json({ message: 'Failed to update likes' });
     }

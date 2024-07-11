@@ -5,7 +5,7 @@ const Clubs = sequelize.define('clubs', {
   clubId: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   clubName: DataTypes.STRING,
   members: DataTypes.INTEGER,
-  coverImage: { type: DataTypes.BLOB('long'), allowNull: false },
+  coverImage: { type: DataTypes.ARRAY(DataTypes.TEXT), allowNull: false },
   slogan: DataTypes.STRING,
   createdAt: DataTypes.DATE,
   updatedAt: DataTypes.DATE,

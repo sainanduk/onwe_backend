@@ -13,7 +13,7 @@ const Users = sequelize.define('users', {
   coverimg: DataTypes.STRING,
   password: DataTypes.STRING,
   refreshToken: DataTypes.STRING,
-  clubs: {type: DataTypes.ARRAY(DataTypes.INTEGER),defaultValue: []},
+  clubs: { type: DataTypes.ARRAY(DataTypes.INTEGER), defaultValue: [] },
   createdAt: DataTypes.DATE,
   updatedAt: DataTypes.DATE,
 });

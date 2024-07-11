@@ -70,41 +70,37 @@ app.use((err, req, res, next) => {
 // // userfollowers and userfollowing model associations (if needed)
 // UserFollowers.belongsTo(Users, { foreignKey: 'followerId', as: 'follower' });
 // UserFollowing.belongsTo(Users, { foreignKey: 'followingId', as: 'followed' });
-
-// Comments association
-Comments.belongsTo(Posts, { foreignKey: "postId" });
-Comments.belongsTo(Users, { foreignKey: "userId" });
-
-// Clubs and Magazines associations
-Clubs.belongsTo(Users, { foreignKey: "admin" });
-Magazines.belongsTo(Admins, { foreignKey: "owner" });
-
-// Posts associations
-Posts.belongsTo(Users, { foreignKey: "userId" });
-Posts.hasMany(Comments, { foreignKey: "postId", as: "postComments" });
+// Comments associations
+Posts.belongsTo(Users, { as: 'user', foreignKey: 'userid' });
+Posts.hasMany(Comments, { foreignKey: 'postId', as: 'postComments' });
 Posts.hasMany(PostLikes, { foreignKey: 'postId', as: 'postLikes' });
 
-// Users associations
-Users.hasMany(Comments, { foreignKey: "userId", as: "userComments" });
-Users.hasMany(Clubs, { foreignKey: "admin", as: "adminClubs" });
-Users.hasMany(Posts, { foreignKey: "userId", as: "userPosts" });
+Users.hasMany(Comments, { foreignKey: 'userId', as: 'userComments' });
+Users.hasMany(Clubs, { foreignKey: 'admin', as: 'adminClubs' });
+Users.hasMany(Posts, { as: 'posts', foreignKey: 'userid' });
 Users.hasMany(UserFollowers, { foreignKey: 'userId', as: 'followers' });
 Users.hasMany(UserFollowing, { foreignKey: 'userId', as: 'following' });
+Users.hasMany(ClubStatus, { foreignKey: 'userId' });
 
-// Admins associations
-Admins.hasMany(Magazines, { foreignKey: "owner", as: "ownedMagazines" });
+Admins.hasMany(Magazines, { foreignKey: 'owner', as: 'ownedMagazines' });
 
-// User followers and following associations
 UserFollowers.belongsTo(Users, { foreignKey: 'followerId', as: 'follower' });
 UserFollowing.belongsTo(Users, { foreignKey: 'followingId', as: 'followed' });
+
 PostLikes.belongsTo(Posts, { foreignKey: 'postId' });
 PostLikes.belongsTo(Users, { foreignKey: 'userId' });
 
 Clubs.hasMany(ClubStatus, { foreignKey: 'clubId' });
-Users.hasMany(ClubStatus, { foreignKey: 'userId' });
-
 ClubStatus.belongsTo(Clubs, { foreignKey: 'clubId' });
 ClubStatus.belongsTo(Users, { foreignKey: 'userId' });
+
+Comments.belongsTo(Posts, { foreignKey: 'postId' });
+Comments.belongsTo(Users, { foreignKey: 'userId' });
+
+Magazines.belongsTo(Admins, { foreignKey: 'owner' });
+
+
+
 const initializeDatabase = async () => {
   try {
     await sequelize.authenticate();

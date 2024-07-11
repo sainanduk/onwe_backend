@@ -12,15 +12,15 @@ router.post('/magazines', uploadimages, processimages, async (req, res) => {
     return res.status(400).json({ error: 'Media data is missing' });
   }
   try {
-    const { owner, title, description, likes, isPublished } = req.body;
+    const { owner, title, description } = req.body;
 
     const newMagazine = await Magazines.create({
       owner,
       title,
       description,
-      likes,
+      likes:0,
       media:req.mediaData.map(img => img.base64String),
-      isPublished,
+      isPublished:true,
       createdAt: new Date(),
     });
 
@@ -31,7 +31,7 @@ router.post('/magazines', uploadimages, processimages, async (req, res) => {
 });
 
 // Get magazines route
-router.get('/magazines', verifier,async (req, res) => {
+router.get('/magazines',async (req, res) => {
   try {
     const magazines = await Magazines.findAll();
     res.status(200).json(magazines);
