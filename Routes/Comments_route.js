@@ -4,7 +4,7 @@ const Comments = require('../models/Comments');
 const { Op } = require('sequelize');
 const Posts = require('../models/Posts')
 const Users = require('../models/Users')
-
+const verifier = require('../middlewares/verifier');
 
 router.get('/posts/:postId/comments', async (req, res) => {
     const { postId } = req.params;
@@ -82,9 +82,9 @@ router.get('/subcomments', async (req, res) => {
 
   
 // Route to create a new comment and update the post's comments array
-router.post('/comments', async (req, res) => {
-  const { postId,  content,parentId,userId} = req.body;
-  //const userId = req.session.sub
+router.post('/comments', verifier ,async (req, res) => {
+  const { postId,  content,parentId} = req.body;
+  const userId = req.session.sub
 
   try {
     // Create the new comment
