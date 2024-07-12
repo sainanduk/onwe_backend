@@ -1,218 +1,286 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Clubs = require('../models/Clubs');
-const User = require('../models/Users');
-const { Op } = require('sequelize');
-const Posts = require('../models/Posts');
-const uploadimages = require('../middlewares/uploadimages');
-const processimages = require('../middlewares/processimages');
+const Clubs = require("../models/Clubs");
+const User = require("../models/Users");
+const { Op } = require("sequelize");
+const Posts = require("../models/Posts");
+const createMulterUpload = require("../middlewares/uploadimages");
+const processimages = require("../middlewares/processimages");
+const isAdmin = require("../middlewares/adminCheck");
+const uploadImages = createMulterUpload();
+const ClubStatuses = require("../models/ClubStatuses");
 
-//search all clubs in which the user is there
-router.post('/clubs/by-user', async (req, res) => {
-  const { userId } = req.body;
-
+// create a club
+router.post("/clubs/create", uploadImages, processimages, async (req, res) => {
+  const { clubName, slogan } = req.body;
   try {
-    // Fetch user by ID to get club IDs from the clubs array
-    const user = await User.findByPk(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    let clubs;
-    const clubIds = user.clubs || [];
-
-    if (clubIds.length === 0) {
-      // If clubs array is empty, fetch all clubs
-      res.send(200).json({message:"No clubs found"})
-    } else {
-      // Fetch clubs where the club ID is in the user's clubs array
-      clubs = await Clubs.findAll({
-        where: {
-          id: {
-            [Op.in]: clubIds
-          }
-        }
-      });
-    }
-
-    res.json(clubs);
-  } catch (error) {
-    console.error('Error fetching clubs by user\'s club IDs:', error);
-    res.status(500).json({ message: 'Failed to fetch clubs' });
-  }
-});
-
-// Route to get club details and posts by clubidID
-router.get('/clubs/:clubId', async (req, res) => {
-  const { clubId } = req.params;
-
-  try {
-    const clubPromise = Clubs.findByPk(clubId);
-    const clubPostsPromise = Posts.findAll({
-      where: { clubid: clubId }
+    // Check if a club with the same name already exists
+    const existingClub = await Clubs.findOne({
+      where: {
+        clubName: {
+          [Op.iLike]: clubName,
+        },
+      },
     });
-    const [club, clubposts] = await Promise.all([clubPromise, clubPostsPromise]);
 
-    if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+    if (existingClub) {
+      return res
+        .status(400)
+        .json({ message: "Club with the same name already exists" });
     }
 
-    res.status(200).json({ club, clubposts });
+    // Create a new club
+    const newClub = await Clubs.create({
+      clubName,
+      slogan,
+      coverImage: req.mediaData.map((img) => img.base64String),
+      members: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    res
+      .status(201)
+      .json({ message: "Club created successfully", club: newClub });
   } catch (error) {
-    console.error('Error fetching club by ID:', error);
-    res.status(500).json({ message: 'Failed to fetch club and its posts' });
+    console.error("Error creating club:", error);
+    res.status(500).json({ message: "Failed to create club" });
   }
 });
-
 
 //search clubs by names
-router.get('/clubs/search', async (req, res) => {
-  const { name } = req.query;
+router.get("/clubs/search", async (req, res) => {
+  const { name } = req.body;
 
   try {
     // Perform a case-insensitive search for clubs whose name contains the provided query string
     const clubs = await Clubs.findAll({
       where: {
-        name: {
-          [Op.iLike]: `%${name}%`  // Case-insensitive search for name containing the query string
-        }
-      }
+        clubName: {
+          [Op.iLike]: `%${name}%`, // Case-insensitive search for name containing the query string
+        },
+      },
     });
 
     res.status(200).json(clubs);
   } catch (error) {
-    console.error('Error searching clubs by name:', error);
-    res.status(500).json({ message: 'Failed to search clubs by name' });
+    console.error("Error searching clubs by name:", error);
+    res.status(500).json({ message: "Failed to search clubs by name" });
   }
 });
-
-// Route to join a club and increment members count
-router.post('/clubs/join', async (req, res) => {
-  const { userId, clubId } = req.body;
-
-  try {
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    const club = await Clubs.findByPk(clubId);
-    if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
-    }
-
-    // Check if user is already a member
-    if (user.clubs && user.clubs.includes(clubId)) {
-      return res.status(400).json({ message: 'User is already a member of the club' });
-    }
-
-    // Add clubId to user's clubs array and save
-    user.clubs = user.clubs || [];
-    user.clubs.push(clubId);
-
-    // Increment club's members count
-    club.members = (club.members || 0) + 1;
-
-    // Save both user and club concurrently
-    await Promise.all([
-      user.save(),
-      club.save()
-    ]);
-
-    res.status(200).json({ message: 'User joined the club successfully', user, club });
-  } catch (error) {
-    console.error('Error joining club:', error);
-    res.status(500).json({ message: 'Failed to join club' });
-  }
-});
-
-
 
 // Route to make an announcement
-router.post('/clubs/announcement', isAdmin,uploadimages, processimages, async (req, res) => {
-  const { userId, clubId, message,title,tags} = req.body;
+router.post(
+  "/clubs/announcement",
+  uploadImages,
+  processimages,
+  async (req, res) => {
+    const { userId, clubId, message, title, tags } = req.body;
 
-  try {
-    const club = await Clubs.findByPk(clubId);
+    try {
+      const club = await Clubs.findByPk(clubId);
 
-    if (!club) {
-      return res.status(404).json({ message: 'Club not found' });
+      if (!club) {
+        return res.status(404).json({ message: "Club not found" });
+      }
+
+      // Create a new post for the announcement
+      const newPost = await Posts.create({
+        title: title,
+        description: message,
+        likes: 0,
+        userid: userId,
+        media: req.mediaData.map((img) => img.base64String),
+        category: "announcement",
+        tags: tags,
+        clubid: clubId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      res
+        .status(201)
+        .json({ message: "Announcement made successfully", post: newPost });
+    } catch (error) {
+      console.error("Error making announcement:", error);
+      res.status(500).json({ message: "Failed to make announcement" });
     }
-
-    // Create a new post for the announcement
-    const newPost = await Posts.create({
-      title: title,
-      description: message,
-      likes: 0,
-      userid: userId,
-      media: req.mediaData,
-      category: 'announcement',
-      tags: tags,
-      clubid: clubId,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-
-    res.status(201).json({ message: 'Announcement made successfully', post: newPost });
-  } catch (error) {
-    console.error('Error making announcement:', error);
-    res.status(500).json({ message: 'Failed to make announcement' });
   }
-});
+);
 
 // Route to get all announcements for a specific club
-router.get('/clubs/:clubId/announcements', async (req, res) => {
+router.get("/clubs/:clubId/announcements", async (req, res) => {
   const { clubId } = req.params;
 
   try {
     const announcements = await Posts.findAll({
       where: {
         clubid: clubId,
-        category: 'announcement'
-      }
+        category: "announcement",
+      },
     });
 
     if (announcements.length === 0) {
-      return res.status(404).json({ message: 'No announcements found for this club' });
+      return res
+        .status(404)
+        .json({ message: "No announcements found for this club" });
     }
 
     res.status(200).json({ announcements });
   } catch (error) {
-    console.error('Error fetching announcements:', error);
-    res.status(500).json({ message: 'Failed to fetch announcements' });
+    console.error("Error fetching announcements:", error);
+    res.status(500).json({ message: "Failed to fetch announcements" });
   }
 });
 
-// make a user as admin
-router.post('/clubs/:clubId/make-admin', isAdmin, async (req, res) => {
-  const { username } = req.body;
-  const { club } = req;
+router.post("/clubs/join", async (req, res) => {
+  const { userId, clubId } = req.body;
 
   try {
-    // Find the user by username
-    const user = await User.findOne({ where: { username } });
+    const user = await User.findByPk(userId);
+    const club = await Clubs.findByPk(clubId);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user is already an admin
-    if (club.admins.includes(user.id)) {
-      return res.status(400).json({ message: 'User is already an admin of the club' });
+    if (!club) {
+      return res.status(404).json({ message: "Club not found" });
     }
 
-    // Add the user's ID to the club's admins array
-    club.admins.push(user.id);
+    // Check if the user is already a member of the club
+    const existingMembership = await ClubStatuses.findOne({
+      where: {
+        userId: userId,
+        clubId: clubId,
+        leftAt: null, // User is still a member if leftAt is null
+      },
+    });
 
-    // Save the updated club
+    if (existingMembership) {
+      return res.status(400).json({ message: "User is already a member" });
+    }
+
+    // Add the user to the club's members
+    await ClubStatuses.create({
+      userId: userId,
+      clubId: clubId,
+      isAdmin: false, // Default to not admin
+      joinedAt: new Date(),
+    });
+
+    // Increment club's member count
+    club.members += 1;
     await club.save();
 
-    res.status(200).json({ message: 'User has been made an admin', club });
+    res.status(200).json({ message: "User joined the club successfully" });
   } catch (error) {
-    console.error('Error making user an admin:', error);
-    res.status(500).json({ message: 'Failed to make user an admin' });
+    console.error("Error joining club:", error);
+    res.status(500).json({ message: "Failed to join club" });
   }
 });
+
+router.post("/clubs/exit", async (req, res) => {
+  const { userId, clubId } = req.body;
+
+  try {
+    const user = await User.findByPk(userId);
+    const club = await Clubs.findByPk(clubId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!club) {
+      return res.status(404).json({ message: "Club not found" });
+    }
+
+    // Find the user's membership record
+    const membership = await ClubStatuses.findOne({
+      where: {
+        userId: userId,
+        clubId: clubId,
+        leftAt: null, // User is still a member if leftAt is null
+      },
+    });
+
+    if (!membership) {
+      return res
+        .status(400)
+        .json({ message: "User is not a member of the club" });
+    }
+
+    // Destroy the membership record
+    await membership.destroy();
+
+    // Decrement club's member count
+    club.members -= 1;
+    await club.save();
+
+    res.status(200).json({ message: "User exited the club successfully" });
+  } catch (error) {
+    console.error("Error exiting club:", error);
+    res.status(500).json({ message: "Failed to exit club" });
+  }
+});
+
+router.post("/clubs/admin", async (req, res) => {
+  const { userId, clubId, toBeAdminUsername } = req.body;
+
+  try {
+    const user = await User.findByPk(userId);
+    const club = await Clubs.findByPk(clubId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!club) {
+      return res.status(404).json({ message: "Club not found" });
+    }
+
+    // Find the user's membership record
+    const membership = await ClubStatuses.findOne({
+      where: {
+        userId: userId,
+        clubId: clubId,
+        isAdmin: true, // User is still a member if leftAt is null
+      },
+    });
+
+    if (!membership) {
+      return res
+        .status(400)
+        .json({ message: "User is not a admin of the club" });
+    }
+    const toBeAdmin = await User.findOne({
+      where: {
+        username: toBeAdminUsername,
+      },
+    });
+    if (!toBeAdmin) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Update the user's status to admin
+    const isUserPresent = await ClubStatuses.findOne({
+      where: {
+        userId: toBeAdmin.id,
+        clubId: clubId,
+      },
+    });
+    if (!isUserPresent) {
+      return res
+        .status(400)
+        .json({ message: "User is not a member of the club" });
+    }
+    isUserPresent.isAdmin = true;
+    await membership.save();
+
+    res.status(200).json({ message: "User is now an admin of the club" });
+  } catch (error) {
+    console.error("Error making user an admin:", error);
+    res.status(500).json({ message: "Failed to make user an admin" });
+  }
+});
+
 module.exports = router;
-  
