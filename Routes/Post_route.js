@@ -10,10 +10,10 @@ const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 // Route to get all posts
 router.get('/posts', verifier, async (req, res) => {
-  const userId = req.session.sub; // Assuming userId is obtained from the session
+  const userId = req.session.sub
 
   try {
-    // Find all posts where clubid is null
+
     const posts = await Posts.findAll({
       where: { clubid: null },
       include: [
@@ -26,7 +26,7 @@ router.get('/posts', verifier, async (req, res) => {
           model: PostLikes,
           as: 'postLikes',
           where: { userId: userId },
-          required: false // Use required: false to perform a LEFT OUTER JOIN
+          required: false 
         }
       ],
       order: [['createdAt', 'DESC']]
@@ -168,7 +168,7 @@ router.get('/posts/category/:category', async (req, res) => {
   router.patch('/posts/like',verifier, async (req, res) => {
     const userId  = req.session.sub;
     const {postId}  = req.body; 
-    if(!postId || userId){
+    if(!postId || !userId){
       return res.json({message:"cannot like posts"})   
      }
     try {
@@ -191,7 +191,7 @@ router.get('/posts/category/:category', async (req, res) => {
           await post.decrement('likes');
         }
   
-        res.json({ liked: false });
+        return res.json({ liked: false });
       } else {
 
         const pstlike=await PostLikes.create({
@@ -204,7 +204,7 @@ router.get('/posts/category/:category', async (req, res) => {
           await post.increment('likes');
         }
   
-        res.json({ liked: true });
+        return res.json({ liked: true });
       }}
     catch (error) {
       console.error('Error updating likes:', error);

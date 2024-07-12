@@ -4,9 +4,11 @@ const Comments = require('../models/Comments');
 const { Op } = require('sequelize');
 const Posts = require('../models/Posts')
 const Users = require('../models/Users')
-// Route to get all comments for a specific post by postId
+
+
 router.get('/posts/:postId/comments', async (req, res) => {
     const { postId } = req.params;
+    console.log(postId)
   
     try {
       const comments = await Comments.findAll({
@@ -81,8 +83,8 @@ router.get('/subcomments', async (req, res) => {
   
 // Route to create a new comment and update the post's comments array
 router.post('/comments', async (req, res) => {
-  const { postId,  content,parentId} = req.body;
-  const userId = req.session.sub
+  const { postId,  content,parentId,userId} = req.body;
+  //const userId = req.session.sub
 
   try {
     // Create the new comment
@@ -105,6 +107,7 @@ router.post('/comments', async (req, res) => {
 // Route to delete a comment by ID
 router.delete('/comments/:commentId', async (req, res) => {
   const { commentId } = req.params;
+  const userid =req.session.sub
 
   try {
     // Find the comment to delete
@@ -112,6 +115,7 @@ router.delete('/comments/:commentId', async (req, res) => {
     if (!comment) {
       return res.status(404).json({ message: 'Comment not found' });
     }
+    if(comment.userId ===userid){
 
     // Delete the main comment
     await comment.destroy();
@@ -124,12 +128,52 @@ router.delete('/comments/:commentId', async (req, res) => {
     });
 
     res.status(204).json({ message: 'Comment and subcomments deleted' });
+  }
+  else{
+    return res.status(404).json({message:"you dont have access to delete the comment"})
+  }
   } catch (error) {
     console.error('Error deleting comment and subcomments:', error);
     res.status(500).json({ message: 'Failed to delete comment and subcomments' });
   }
 });
 
+router.delete('/user/post/:postId/:commentId', async (req, res) => {
+  try {
+    const userId = req.session.sub
+    const { postId, commentId } = req.params
+
+    const userPost = await Posts.findOne({
+      where: {
+        id: postId,
+        userId: userId
+      }
+    })
+
+    if (userPost) {
+      const comment = await Comments.findByPk(commentId);
+
+      if (comment) {
+       
+        await comment.destroy()
+        await Comments.destroy({
+          where: {
+            parentId: commentId
+          }
+        });
+
+        return res.status(200).json({ message: "Comment deleted successfully" });
+      } else {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+    } else {
+      return res.status(403).json({ message: "You do not have permission to delete this comment" });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "An error occurred while deleting the comment" });
+  }
+});
 
 
 module.exports = router;

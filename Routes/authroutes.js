@@ -33,7 +33,7 @@ router.post("/Adminsignup", async (req, res) => {
       fullname: fullName,
     });
 
-    res.json("SUCCESS");
+    res.status(200).json('SUCCESS');
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -112,11 +112,11 @@ router.post("/Adminsignin", async (req, res) => {
 // });
 
 router.post("/webhook", async (req, res) => {
-  console.log("Webhook received:", JSON.stringify(req.body, null, 2));
+
   const event = req.body;
   const user = event.data;
 
-  console.log("Webhook received:", JSON.stringify(event, null, 2));
+
 
   if (event.type === "user.created") {
     const userId = user.id;
@@ -138,13 +138,15 @@ router.post("/webhook", async (req, res) => {
 
       if (exist) {
         console.log(`User with ID ${userId} already exists.`);
-        return res.status(200).json({ message: "User already exists" });
-      } else {
-        await Users.create({
-          id: userId,
-          username: username,
-          email: email,
-        });
+        return res.json({ message: "User already exists" });
+        
+      }
+      else{
+      await Users.create({
+        id: userId,
+        username: username,
+        email: email,
+      });
 
         console.log(`User with ID ${userId} created successfully.`);
         return res.status(201).json({ message: "User created" });
