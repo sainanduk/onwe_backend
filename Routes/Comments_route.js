@@ -54,7 +54,31 @@ router.get('/comments/:commentId', async (req, res) => {
 
 //fetch all subcomments
 
-router.get('/subcomments', async (req, res) => {
+// router.get('/subcomments', async (req, res) => {
+//   const { postId, parentId } = req.body;
+
+//   try {
+//     // Fetch all comments with the given postId and parentId
+//     const comments = await Comments.findAll({
+//       where: {
+//         postId: postId,
+//         parentId: parentId
+//       },
+//       include:[
+//         {
+//           model: Users,
+//           attributes: ['username', 'avatar']
+//         }
+//       ]
+//     });
+
+//     res.status(200).json(comments); // Respond with the fetched comments
+//   } catch (error) {
+//     console.error('Error fetching comments:', error);
+//     res.status(500).json({ message: 'Failed to fetch comments' });
+//   }
+// });
+router.post('/subcomments', async (req, res) => {
   const { postId, parentId } = req.body;
 
   try {
@@ -64,7 +88,7 @@ router.get('/subcomments', async (req, res) => {
         postId: postId,
         parentId: parentId
       },
-      include:[
+      include: [
         {
           model: Users,
           attributes: ['username', 'avatar']
@@ -78,7 +102,6 @@ router.get('/subcomments', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch comments' });
   }
 });
-
 
   
 // Route to create a new comment and update the post's comments array
@@ -105,7 +128,7 @@ router.post('/comments', verifier ,async (req, res) => {
 });
 
 // Route to delete a comment by ID
-router.delete('/comments/:commentId', async (req, res) => {
+router.delete('/comments/:commentId', verifier,async (req, res) => {
   const { commentId } = req.params;
   const userid =req.session.sub
 

@@ -275,7 +275,7 @@ router.post("/clubs/admin", async (req, res) => {
     }
     isUserPresent.isAdmin = true;
     await membership.save();
-
+    await isUserPresent.save();
     res.status(200).json({ message: "User is now an admin of the club" });
   } catch (error) {
     console.error("Error making user an admin:", error);
