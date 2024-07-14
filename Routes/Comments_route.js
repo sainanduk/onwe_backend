@@ -161,7 +161,7 @@ router.delete('/comments/:commentId', verifier,async (req, res) => {
   }
 });
 
-router.delete('/user/post/:postId/:commentId', async (req, res) => {
+router.delete('/user/post/:postId/:commentId', verifier,async (req, res) => {
   try {
     const userId = req.session.sub
     const { postId, commentId } = req.params
