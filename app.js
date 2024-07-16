@@ -20,7 +20,7 @@ const Users = require('./models/Users');
 const verifier = require('./middlewares/verifier.js')
 const EventRoutes =require('./Routes/event_routes.js')
 const UserUpdateRoute = require('./Routes/Users_route.js')
-const PostLikes = require('./models/postlikes.js')
+const PostLikes = require('./models/postLikes.js')
 const FollowersFollowing =require('./Routes/followersandfollowing.js')
 const magazineRoutes=require('./Routes/magazines_route.js')
 const ClubStatus =require('./models/clubstatuses.js')
@@ -41,8 +41,8 @@ app.use(ExploreRoutes)
 app.use(commentsRoutes);
 app.use(clubRoutes);
 app.use(updateusers)
-app.use('/api',verifier,UserUpdateRoute)
-app.use('/api',verifier,FollowersFollowing)
+// app.use('/api',verifier,UserUpdateRoute)
+// app.use('/api',verifier,FollowersFollowing)
 
 
 

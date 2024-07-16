@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Posts = require('../models/Posts');
-const PostLikes =require('../models/postlikes')
+const PostLikes =require('../models/postLikes')
 const createMulterUpload = require('../middlewares/uploadimages');
 const processimages = require('../middlewares/processimages');
 const Comments = require('../models/Comments');
@@ -140,9 +140,9 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
   //create new post
  
 
-  router.post('/posts',uploadimages, processimages, async (req, res) => {
+  router.post('/posts',verifier,uploadimages, processimages, async (req, res) => {
     const { title, description,category, tags, clubid } = req.body;
-    const userid = 'user_2j5cPANyV4NciZZVvkmZLjq2ssc'
+    const userid = req.session.sub
   
     try {
       // Create new post
@@ -195,9 +195,8 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
   });
   
 
-  router.patch('/posts/like', async (req, res) => {
-    //const userId  = req.session.sub;
-    const userId='user_2j5cPANyV4NciZZVvkmZLjq2ssc'
+  router.patch('/posts/like',verifier, async (req, res) => {
+    const userId  = req.session.sub;
     const {postId}  = req.body; 
     if(!postId || !userId){
       return res.json({message:"cannot like posts"})   

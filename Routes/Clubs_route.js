@@ -8,7 +8,7 @@ const createMulterUpload = require("../middlewares/uploadimages");
 const processimages = require("../middlewares/processimages");
 const isAdmin = require("../middlewares/adminCheck");
 const uploadImages = createMulterUpload();
-const ClubStatuses = require("../models/ClubStatuses");
+const ClubStatuses = require("../models/clubstatuses");
 
 // create a club
 router.post("/clubs/create", uploadImages, processimages, async (req, res) => {
