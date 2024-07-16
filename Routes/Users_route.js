@@ -5,16 +5,17 @@ const Clubs = require('../models/Clubs'); // Assuming you have a Clubs model
 const { Op } = require('sequelize');
 const createMulterUpload = require('../middlewares/uploadimages');
 const processimages = require('../middlewares/processimages');
+const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 
-// Route to create a new user
-router.patch('/users/:id',uploadimages,processimages, async (req, res) => {
-    const { id } = req.params;
+// Route to update user
+router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) => {
+    const userId  = req.session.sub;
     const { fullname, bio, socials, department, password } = req.body;
   
     try {
       // Find the user by ID
-      let user = await Users.findByPk(id);
+      let user = await Users.findByPk(userId);
   
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -27,8 +28,8 @@ router.patch('/users/:id',uploadimages,processimages, async (req, res) => {
       user.department = department || user.department;
       user.password = password || user.password;
       user.updatedAt = new Date();
-  
-      if (mediaData && mediaData.length > 0) {
+      console.log(req.mediaData);
+      if (req.mediaData && req.mediaData.length > 0) {
         if (mediaData.length >= 1) {
           user.avatar = req.mediaData[0].base64String; 
         }
@@ -36,7 +37,9 @@ router.patch('/users/:id',uploadimages,processimages, async (req, res) => {
           user.coverimg = req.mediaData[1].base64String; 
         }
       }
+      
       await user.save();
+
   
       res.json(user);
     } catch (error) {

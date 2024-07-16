@@ -26,6 +26,7 @@ const magazineRoutes=require('./Routes/magazines_route.js')
 const ClubStatus =require('./models/clubstatuses.js')
 const ExploreRoutes=require('./Routes/explore_route.js')
 const clubRoutes=require('./Routes/Clubs_route.js')
+const updateusers =require('./Routes/Users_route.js')
 const app = express();
 app.use(bodyParser.json());
 app.use(cors())
@@ -39,6 +40,7 @@ app.use(mobileLogin);
 app.use(ExploreRoutes)
 app.use(commentsRoutes);
 app.use(clubRoutes);
+app.use(updateusers)
 app.use('/api',verifier,UserUpdateRoute)
 app.use('/api',verifier,FollowersFollowing)
 

@@ -9,8 +9,9 @@ const Users = require('../models/Users');
 const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 // Route to get all posts
-router.get('/posts', verifier, async (req, res) => {
+router.get('/posts',verifier, async (req, res) => {
   const userId = req.session.sub
+
 
   try {
 
@@ -54,19 +55,48 @@ router.get('/posts', verifier, async (req, res) => {
   }
 });
 //getpost by category
-router.get('/posts/category/:category', async (req, res) => {
+router.get('/posts/category/:category',verifier, async (req, res) => {
   const { category } = req.params;
+  const userId =req.session.sub;
 
   try {
+
     const posts = await Posts.findAll({
-      where: { category }
+      where: { category:category,clubid: null },
+      include: [
+        {
+          model: Users,
+          as: 'user',
+          attributes: ['avatar', 'username']
+        },
+        {
+          model: PostLikes,
+          as: 'postLikes',
+          where: { userId: userId },
+          required: false 
+        }
+      ],
+      order: [['createdAt', 'DESC']]
     });
-    if (posts.length === 0) {
-      return res.status(404).json({ message: 'No posts found in this category' });
-    }
-    res.json(posts);
+
+    // Map posts to transform Sequelize objects into plain JSON
+    const postsWithLikes = posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      description: post.description,
+      userid: post.userid,
+      avatar:post.user.avatar,
+      username: post.user ? post.user.username : null, // Access the username from the included User model
+      likes: post.likes,
+      tags: post.tags,
+      media: post.media,
+      category: post.category,
+      liked: post.postLikes.length > 0 // Check if there are likes for the user
+    }));
+
+    res.json(postsWithLikes);
   } catch (error) {
-    console.error('Error fetching posts by category:', error);
+    console.error('Error fetching posts:', error);
     res.status(500).json({ message: 'Failed to fetch posts' });
   }
 });
@@ -110,9 +140,9 @@ router.get('/posts/category/:category', async (req, res) => {
   //create new post
  
 
-  router.post('/posts', verifier,uploadimages, processimages, async (req, res) => {
+  router.post('/posts',uploadimages, processimages, async (req, res) => {
     const { title, description,category, tags, clubid } = req.body;
-    const userid = req.session.sub
+    const userid = 'user_2j5cPANyV4NciZZVvkmZLjq2ssc'
   
     try {
       // Create new post
@@ -165,8 +195,9 @@ router.get('/posts/category/:category', async (req, res) => {
   });
   
 
-  router.patch('/posts/like',verifier, async (req, res) => {
-    const userId  = req.session.sub;
+  router.patch('/posts/like', async (req, res) => {
+    //const userId  = req.session.sub;
+    const userId='user_2j5cPANyV4NciZZVvkmZLjq2ssc'
     const {postId}  = req.body; 
     if(!postId || !userId){
       return res.json({message:"cannot like posts"})   

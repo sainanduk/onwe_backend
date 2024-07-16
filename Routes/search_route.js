@@ -6,23 +6,36 @@ const Posts =require('../models/Posts')
 const {sequelize} = require('../Config/database')
 const userfollowers =require('../models/userfollowers')
 const userfollowing =require('../models/userfollowing')
-
+const Clubs =require('../models/Clubs')
 // Route to search users by username
-router.get('/users/search', async (req, res) => {
-  const { username } = req.body;
-
+router.get('/:tab/:search', async (req, res) => {
+  const { tab,search } = req.params;
   try {
+  if(tab==='clubs'){
+    const clubs = await Clubs.findAll({
+      where: {
+        clubName: {
+          [Op.iLike]: `%${search}%`, 
+        },
+      },
+      attributes:['clubName','coverImage']
+    });
+
+    return res.status(200).json(clubs);
+  }
+  else{
+  
     const users = await Users.findAll({
       where: {
         username: {
-          [Op.iLike]: `${username}%`
+          [Op.iLike]: `${search}%`
         }
       },
       attributes: ['id', 'username','avatar'] 
     });
 
-    res.json(users);
-  } catch (error) {
+    return res.json(users);
+  }} catch (error) {
     console.error('Error searching users by username:', error);
     res.status(500).json({ message: 'Failed to search users' });
   }

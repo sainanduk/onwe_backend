@@ -1,10 +1,11 @@
 const processimages = async (req, res, next) => {
+  console.log(req.files);
   try {
     if (!req.files || req.files.length === 0) {
       req.mediaData = []; // Initialize as an empty array if no files are uploaded
     } else {
       const files = req.files;
-      
+      console.log(files);
       req.mediaData = [];
       
       for (const file of files) {
