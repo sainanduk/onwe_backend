@@ -32,7 +32,8 @@ router.post("/mobileLogin", async (req, res, next) => {
       userId: userId,
     });
     // const data
-    res.send("Mobile login successful");
+    res.send(response);
+    
   } catch (error) {
     console.error("Error during mobile login:", error);
     res.status(500).json({ message: "Internal Server Error" });

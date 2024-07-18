@@ -20,9 +20,9 @@ router.get('/topclubs',async(req,res)=>{
     res.status(500).json({message:"Error fetching top clubs"})
 }
 })
-router.get('/top-posts', verifier, async (req, res) => {
-    const id = req.session.sub;
-
+router.get('/top-posts',verifier, async (req, res) => {
+    const id = req.session.sub
+    console.log(id);
     try {
         const Top_posts = await Posts.findAll({
             attributes: ['id', 'title', 'media', 'description', 'likes', 'category', 'tags', 'userid'],

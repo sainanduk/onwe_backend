@@ -16,7 +16,7 @@ router.get('/:tab/:search', async (req, res) => {
     const clubs = await Clubs.findAll({
       where: {
         clubName: {
-          [Op.iLike]: `%${search}%`, 
+          [Op.iLike]: `${search}%`, 
         },
       },
       attributes:['clubName','coverImage']

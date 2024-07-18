@@ -81,7 +81,7 @@ router.post('/user/info', verifier, async (req, res) => {
       
       const response = {
           user: user.toJSON(),
-          postsWithLikes,
+          posts:postsWithLikes,
           followersCount,
           followingCount
       };

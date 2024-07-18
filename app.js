@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors =require('cors')
+const cron =require('node-cron')
+const deleteOldPosts =require('./middlewares/deletepostsinterval.js')
 const postsRoutes = require('./Routes/Post_route.js'); 
 const commentsRoutes = require('./Routes/Comments_route.js');
 const usernameRoutes = require('./Routes/username_route.js');
@@ -123,6 +125,11 @@ const initializeDatabase = async () => {
 // Initialize and sync database
 initializeDatabase();
 
+//delete posts after 48 hours
+cron.schedule('0 * * * *', () => {
+  console.log('Running scheduled job to delete old posts');
+  deleteOldPosts();
+});
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

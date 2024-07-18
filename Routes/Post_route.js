@@ -15,7 +15,7 @@ router.get('/posts',verifier, async (req, res) => {
 
   try {
 
-    const posts = await Posts.findAll({
+    let posts = await Posts.findAll({
       where: { clubid: null },
       include: [
         {
@@ -48,7 +48,9 @@ router.get('/posts',verifier, async (req, res) => {
       liked: post.postLikes.length > 0 // Check if there are likes for the user
     }));
 
-    res.json(postsWithLikes);
+    posts = postsWithLikes;
+
+    res.json(posts);
   } catch (error) {
     console.error('Error fetching posts:', error);
     res.status(500).json({ message: 'Failed to fetch posts' });
