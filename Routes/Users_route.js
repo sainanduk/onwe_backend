@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Users = require('../models/Users');
-const Clubs = require('../models/Clubs'); // Assuming you have a Clubs model
+const Clubs = require('../models/Clubs'); 
 const { Op } = require('sequelize');
 const Posts = require('../models/Posts')
 const PostLikes =require('../models/postLikes')
@@ -12,14 +12,13 @@ const processimages = require('../middlewares/processimages');
 const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 
-// Route to update user
 
 router.post('/user/info', verifier, async (req, res) => {
   const id = req.session.sub;
   console.log("working");
 
   try {
-      // Fetch user details
+      
       const userPromise = Users.findByPk(id, {
           attributes: ['username', 'avatar', 'email', 'fullname', 'bio']
       });
@@ -42,17 +41,17 @@ router.post('/user/info', verifier, async (req, res) => {
           order: [['createdAt', 'DESC']]
       });
 
-      // Fetch followers count
+      
       const followersCountPromise = userfollowers.count({
           where: { userId: id }
       });
 
-      // Fetch following count
+      
       const followingCountPromise = userfollowing.count({
           where: { userId: id }
       });
 
-      // Resolve promises concurrently
+      
       const [user, posts, followersCount, followingCount] = await Promise.all([
           userPromise,
           postsPromise,
@@ -60,26 +59,26 @@ router.post('/user/info', verifier, async (req, res) => {
           followingCountPromise
       ]);
 
-      // Map posts to transform Sequelize objects into plain JSON
+      
       const postsWithLikes = posts.map(post => ({
           id: post.id,
           title: post.title,
           description: post.description,
           userid: post.userid,
           avatar: post.user.avatar,
-          username: post.user ? post.user.username : null, // Access the username from the included User model
+          username: post.user ? post.user.username : null, 
           likes: post.likes,
           tags: post.tags,
           media: post.media,
           category: post.category,
-          liked: post.postLikes.length > 0 // Check if there are likes for the user
+          liked: post.postLikes.length > 0 
       }));
 
       if (!user) {
           return res.status(404).json({ message: 'User not found' });
       }
 
-      // Construct response object
+      
       const response = {
           user: user.toJSON(),
           postsWithLikes,
@@ -102,14 +101,12 @@ router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) 
     console.log("work");
   
     try {
-      // Find the user by ID
+     
       let user = await Users.findByPk(userId);
   
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-  
-      // Update user fields
       user.fullname = fullname || user.fullname;
       user.bio = bio || user.bio;
       user.socials = socials || user.socials;

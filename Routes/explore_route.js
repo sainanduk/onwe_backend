@@ -28,7 +28,7 @@ router.get('/top-posts', verifier, async (req, res) => {
             attributes: ['id', 'title', 'media', 'description', 'likes', 'category', 'tags', 'userid'],
             include: [
                 {
-                    model: Users, // Include the Users model to access user data
+                    model: Users, 
                     as: 'user',
                     attributes: ['avatar', 'username'],
                 },
@@ -43,19 +43,18 @@ router.get('/top-posts', verifier, async (req, res) => {
             limit: 15
         });
 
-        // Map posts to transform Sequelize objects into plain JSON
         const postsWithLikes = Top_posts.map(post => ({
             id: post.id,
             title: post.title,
             description: post.description,
             userid: post.userid,
-            avatar: post.user ? post.user.avatar : null, // Access the avatar from the included User model
-            username: post.user ? post.user.username : null, // Access the username from the included User model
+            avatar: post.user ? post.user.avatar : null, 
+            username: post.user ? post.user.username : null, 
             likes: post.likes,
             tags: post.tags,
             media: post.media,
             category: post.category,
-            liked: post.postLikes.length > 0 // Check if there are likes for the user
+            liked: post.postLikes.length > 0 
         }));
 
         return res.json(postsWithLikes);
