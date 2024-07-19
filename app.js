@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors =require('cors')
+const cron =require('node-cron')
+const deleteOldPosts =require('./middlewares/deletepostsinterval.js')
 const postsRoutes = require('./Routes/Post_route.js'); 
 const commentsRoutes = require('./Routes/Comments_route.js');
 const usernameRoutes = require('./Routes/username_route.js');
@@ -20,12 +22,13 @@ const Users = require('./models/Users');
 const verifier = require('./middlewares/verifier.js')
 const EventRoutes =require('./Routes/event_routes.js')
 const UserUpdateRoute = require('./Routes/Users_route.js')
-const PostLikes = require('./models/postlikes.js')
+const PostLikes = require('./models/postLikes.js')
 const FollowersFollowing =require('./Routes/followersandfollowing.js')
 const magazineRoutes=require('./Routes/magazines_route.js')
 const ClubStatus =require('./models/clubstatuses.js')
 const ExploreRoutes=require('./Routes/explore_route.js')
 const clubRoutes=require('./Routes/Clubs_route.js')
+const updateusers =require('./Routes/Users_route.js')
 const app = express();
 app.use(bodyParser.json());
 app.use(cors())
@@ -39,8 +42,9 @@ app.use(mobileLogin);
 app.use(ExploreRoutes)
 app.use(commentsRoutes);
 app.use(clubRoutes);
-app.use('/api',verifier,UserUpdateRoute)
-app.use('/api',verifier,FollowersFollowing)
+app.use(updateusers)
+// app.use('/api',verifier,UserUpdateRoute)
+// app.use('/api',verifier,FollowersFollowing)
 
 
 
@@ -121,6 +125,11 @@ const initializeDatabase = async () => {
 // Initialize and sync database
 initializeDatabase();
 
+//delete posts after 48 hours
+cron.schedule('0 * * * *', () => {
+  console.log('Running scheduled job to delete old posts');
+  deleteOldPosts();
+});
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

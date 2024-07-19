@@ -32,7 +32,6 @@ router.post("/mobileLogin", async (req, res, next) => {
       userId: userId,
       expiresInSeconds: expiresIn,
     });
-    // const data
     const finalData = {
       sessionId: response.id,
       userId: userId,

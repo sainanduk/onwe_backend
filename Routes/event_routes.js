@@ -8,7 +8,7 @@ const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 
 // Get all events
-router.get('/events',verifier, async (req, res) => {
+router.get('/events', async (req, res) => {
   try {
     const events = await Event.findAll({
       attributes: ["id",'title', 'media','dateOfEvent','description','time',"subtitle","category"]

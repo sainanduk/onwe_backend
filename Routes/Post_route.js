@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Posts = require('../models/Posts');
-const PostLikes =require('../models/postlikes')
+const PostLikes =require('../models/postLikes')
 const createMulterUpload = require('../middlewares/uploadimages');
 const processimages = require('../middlewares/processimages');
 const Comments = require('../models/Comments');
@@ -9,13 +9,62 @@ const Users = require('../models/Users');
 const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 // Route to get all posts
-router.get('/posts', verifier, async (req, res) => {
+router.get('/posts',verifier, async (req, res) => {
   const userId = req.session.sub
+
+
+  try {
+
+    let posts = await Posts.findAll({
+      where: { clubid: null },
+      include: [
+        {
+          model: Users,
+          as: 'user',
+          attributes: ['avatar', 'username']
+        },
+        {
+          model: PostLikes,
+          as: 'postLikes',
+          where: { userId: userId },
+          required: false 
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    // Map posts to transform Sequelize objects into plain JSON
+    const postsWithLikes = posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      description: post.description,
+      userid: post.userid,
+      avatar:post.user.avatar,
+      username: post.user ? post.user.username : null, // Access the username from the included User model
+      likes: post.likes,
+      tags: post.tags,
+      media: post.media,
+      category: post.category,
+      liked: post.postLikes.length > 0 // Check if there are likes for the user
+    }));
+
+    posts = postsWithLikes;
+
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ message: 'Failed to fetch posts' });
+  }
+});
+//getpost by category
+router.get('/posts/category/:category',verifier, async (req, res) => {
+  const { category } = req.params;
+  const userId =req.session.sub;
 
   try {
 
     const posts = await Posts.findAll({
-      where: { clubid: null },
+      where: { category:category,clubid: null },
       include: [
         {
           model: Users,
@@ -50,23 +99,6 @@ router.get('/posts', verifier, async (req, res) => {
     res.json(postsWithLikes);
   } catch (error) {
     console.error('Error fetching posts:', error);
-    res.status(500).json({ message: 'Failed to fetch posts' });
-  }
-});
-//getpost by category
-router.get('/posts/category/:category', async (req, res) => {
-  const { category } = req.params;
-
-  try {
-    const posts = await Posts.findAll({
-      where: { category }
-    });
-    if (posts.length === 0) {
-      return res.status(404).json({ message: 'No posts found in this category' });
-    }
-    res.json(posts);
-  } catch (error) {
-    console.error('Error fetching posts by category:', error);
     res.status(500).json({ message: 'Failed to fetch posts' });
   }
 });
@@ -110,7 +142,7 @@ router.get('/posts/category/:category', async (req, res) => {
   //create new post
  
 
-  router.post('/posts', verifier,uploadimages, processimages, async (req, res) => {
+  router.post('/posts',verifier,uploadimages, processimages, async (req, res) => {
     const { title, description,category, tags, clubid } = req.body;
     const userid = req.session.sub
   

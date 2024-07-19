@@ -33,7 +33,9 @@ router.post('/magazines', uploadimages, processimages, async (req, res) => {
 // Get magazines route
 router.get('/magazines',async (req, res) => {
   try {
-    const magazines = await Magazines.findAll();
+    const magazines = await Magazines.findAll({
+      order:[['updatedAt','DESC']]
+    });
     res.status(200).json(magazines);
   } catch (error) {
     res.status(500).json({ error: error.message });
