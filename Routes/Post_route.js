@@ -168,6 +168,9 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
     }
   });
 
+
+  
+
   //delete post 
 
   router.delete('/posts/:postId', async (req, res) => {

@@ -28,7 +28,10 @@ const magazineRoutes=require('./Routes/magazines_route.js')
 const ClubStatus =require('./models/clubstatuses.js')
 const ExploreRoutes=require('./Routes/explore_route.js')
 const clubRoutes=require('./Routes/Clubs_route.js')
-const updateusers =require('./Routes/Users_route.js')
+const updateusers =require('./Routes/Users_route.js');
+const PollOptions = require('./models/PollOptions.js');
+const Polls = require('./models/Polls.js');
+const polls_route =require('./Routes/polls_route.js')
 const app = express();
 app.use(bodyParser.json());
 app.use(cors())
@@ -43,6 +46,7 @@ app.use(ExploreRoutes)
 app.use(commentsRoutes);
 app.use(clubRoutes);
 app.use(updateusers)
+app.use(polls_route)
 // app.use('/api',verifier,UserUpdateRoute)
 // app.use('/api',verifier,FollowersFollowing)
 
@@ -102,6 +106,9 @@ Clubs.hasMany(ClubStatus, { foreignKey: 'clubId' });
 ClubStatus.belongsTo(Clubs, { foreignKey: 'clubId' });
 ClubStatus.belongsTo(Users, { foreignKey: 'userId' });
 
+Polls.hasMany(PollOptions, { foreignKey: 'pollId', as: 'options' });
+PollOptions.belongsTo(Polls, { foreignKey: 'pollId' });
+
 Comments.belongsTo(Posts, { foreignKey: 'postId' });
 Comments.belongsTo(Users, { foreignKey: 'userId' });
 
@@ -131,7 +138,7 @@ cron.schedule('0 * * * *', () => {
   deleteOldPosts();
 });
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = 3000||3001||3002||3003;
 app.listen(PORT, () => {
   console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });

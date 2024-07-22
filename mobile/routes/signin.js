@@ -23,15 +23,30 @@ router.post("/mobileLogin", async (req, res, next) => {
       password: password,
     });
 
+
+
+
+   
+
+
+
+
+
+
+
+
     if (!verify) {
       return res.status(400).json({ message: "Invalid Password" });
     }
 
     // Create a sign-in token
+    const expiresInSeconds = 60 * 60 * 24 * 7;
     const response = await clerkClient.signInTokens.createSignInToken({
-      userId: userId,
+      userId,
+      expiresInSeconds
     });
     // const data
+    console.log(response);
     res.send(response);
     
   } catch (error) {
