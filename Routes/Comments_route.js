@@ -8,7 +8,7 @@ const verifier = require('../middlewares/verifier');
 
 router.get('/posts/:postId/comments', async (req, res) => {
     const { postId } = req.params;
-    console.log(postId)
+    console.log("postId",postId)
   
     try {
       const comments = await Comments.findAll({

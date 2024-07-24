@@ -13,7 +13,7 @@
   const PostLikes = require('../models/postLikes');
 
 //create posts and announcements in club
-  router.post('/clubs/posts', verifier, uploadImages, processimages, async (req, res) => {
+  router.post('/clubs/posts', uploadImages, processimages, async (req, res) => {
     const { title, description, category, tags, clubname } = req.body;
     const userid = req.session.sub;
     console.log("club posts route working");
@@ -47,7 +47,7 @@
   });
 
 
-  router.get('/myclubs', verifier, async (req, res) => {
+  router.get('/myclubs', async (req, res) => {
     const userId = req.session.sub;
 
     try {
@@ -74,116 +74,51 @@
     }
   });
 
-  // create a club this is for admin
-  router.post("/clubs/create", uploadImages, processimages, async (req, res) => {
-    const { clubName, slogan } = req.body;
+
+
+  router.get('/clubs/check/:clubname', verifier, async (req, res) => {
+    const { clubname } = req.params; 
+    const userId = req.session.sub;
+    console.log("Today's route");
+  
     try {
-      const existingClub = await Clubs.findOne({
+      // Fetch club information
+      const clubInfo = await Clubs.findOne({
         where: {
-          clubName: {
-            [Op.iLike]: clubName,
-          },
-        },
+          clubName: clubname
+        }
       });
-
-      if (existingClub) {
-        return res
-          .status(400)
-          .json({ message: "Club with the same name already exists" });
+  
+      if (!clubInfo) {
+        return res.status(404).send("Club does not exist");
       }
-
-      // Create a new club
-      const newClub = await Clubs.create({
-        clubName,
-        slogan,
-        coverImage: req.mediaData.map((img) => img.base64String),
-        members: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+  
+      // Check if user is part of the club
+      const clubStatsInfo = await ClubStatuses.findOne({
+        where: {
+          clubId: clubInfo.clubId,
+          userId: userId
+        }
       });
-
-      res
-        .status(201)
-        .json({ message: "Club created successfully", club: newClub });
+  
+      if (!clubStatsInfo) {
+        return res.status(403).send("You are not part of the club");
+      }
+  
+      // All checks passed
+      return res.status(200).send("OK");
+  
     } catch (error) {
-      console.error("Error creating club:", error);
-      res.status(500).json({ message: "Failed to create club" });
+      console.error("Error in /clubs/check/:clubname:", error); // Log the error for debugging
+      res.status(500).send("Internal Server Error"); // Return a 500 status for internal errors
     }
   });
-
-
-  // router.get('/myclubs/:clubname',verifier,async(req,res)=>{
-  //     const clubname =req.params;
-  //     const userId = req.session.sub;
-
-  //     try{
-  //     const Clubinfo =await Clubs.findOne({where:{
-  //       clubName:clubname
-  //     }})
-
-  //     if(!Clubinfo){
-  //       return res.send("Club does not there");
-        
-  //     }
-
-  //     const clubstatsinfo = await ClubStatuses.findOne({
-  //       where:{
-  //         clubId: Clubinfo.clubId,
-  //         userId: userId
-  //       }
-  //     })
-      
-  //     if(!clubstatsinfo){
-  //       return res.send(false);
-  //     }
-  //     else{
-  //       const posts = await Posts.findAll({
-  //         where: { clubid: Clubinfo.clubId },
-  //         include: [
-  //           {
-  //             model: Users,
-  //             as: 'user',
-  //             attributes: ['avatar', 'username']
-  //           },
-  //           {
-  //             model: PostLikes,
-  //             as: 'postLikes',
-  //             where: { userId: userId },
-  //             required: false 
-  //           }
-  //         ],
-  //         order: [['createdAt', 'DESC']]
-  //       });
-        
-  //       // Map posts to transform Sequelize objects into plain JSON
-  //       const postsWithLikes = posts.map(post => ({
-  //         id: post.id,
-  //         title: post.title,
-  //         description: post.description,
-  //         userid: post.userid,
-  //         avatar:post.user.avatar,
-  //         username: post.user ? post.user.username : null, // Access the username from the included User model
-  //         likes: post.likes,
-  //         tags: post.tags,
-  //         media: post.media,
-  //         category: post.category,
-  //         liked: post.postLikes.length > 0 // Check if there are likes for the user
-  //       }));
-        
-  //       res.json(clubstatsinfo.isAdmin);
-  //     }
-  //   }
-  //   catch(error){  
-      
-  //     res.status(404).send("Error in fetching post ",error)
-    
-  //   }
-  // })
-
+  
   // general working done 
-  router.get('/clubs/:clubName/general', verifier, async (req, res) => {  
-    console.log("0");
+  router.get('/clubs/:clubName/general', async (req, res) => {  
+    
     const { clubName } = req.params;
+    console.log("this is with general");
     const clubInfo = await Clubs.findOne({ where: { clubName: clubName } });
     if(!clubInfo){
       return res.status(404).json({message:`No clubs exists with the name ${clubName}`})
@@ -191,18 +126,17 @@
     const clubId = clubInfo.clubId;
 
     const userId = req.session.sub;
-    console.log("genearl log 1");
     try {
       // Fetch club information
       const clubInfo = await Clubs.findOne({
         where: { clubName: clubName }
       });
-      console.log("genaeral log 2");
+      
 
       if (!clubInfo) {
         return res.status(404).json({ message: "Club not found" });
       }
-      console.log(" g log 3");
+      
 
       // const clubId = clubInfo.clubId; // Retrieve the clubId
       // const userId = req.session.sub; // Assuming you have a way to get the userId from the verifier middleware
@@ -212,12 +146,12 @@
         where: { userId: userId, clubId: clubId },
         attributes: ['clubId']
       });
-      console.log(" g log 4");
+     
 
       if (!isUserPresent) {
         return res.status(403).json({ message: "Please join this club to check announcements." });
       }
-      console.log("g log 5");
+      
 
       // Fetch posts for the club
       const posts = await Posts.findAll({
@@ -265,8 +199,8 @@
   });
 
   //announcement working done 
-  router.get('/clubs/:clubName/announcement', verifier, async (req, res) => {
-    console.log("0");
+  router.get('/clubs/:clubName/announcement',async (req, res) => {
+    console.log("this is with announcements");
     const { clubName } = req.params;
     
     // Fetch club information
@@ -278,19 +212,19 @@
     
     const clubId = clubInfo.clubId;
     const userId = req.session.sub;
-    console.log("log 1");
+    
     
     try {
       // Check if the user is a member of the club
       const isUserPresent = await ClubStatuses.findOne({
         where: { userId: userId, clubId: clubId }
       });
-      console.log("log 4");
+      
   
       if (!isUserPresent) {
         return res.status(403).json({ message: "Please join this club to check announcements." });
       }
-      console.log("log 5");
+      
   
       // Fetch posts for the club
       const posts = await Posts.findAll({
@@ -313,7 +247,7 @@
         ],
         order: [['createdAt', 'DESC']]
       });
-      console.log("log 6");
+      
   
       // Transform posts into plain JSON
       const postsWithLikes = posts.map(post => ({
@@ -403,21 +337,20 @@
   //   }
   // });
 
-  router.post("/clubs/join", verifier, async (req, res) => {
+  router.post("/clubs/join",  async (req, res) => {
     const { clubName } = req.body;
     const userId = req.session.sub;
   
     try {
       // Check if the club exists by its name
       const club = await Clubs.findOne({ where: { clubName: clubName } });
-  
+
       if (!club) {
         return res.status(404).json({ message: "Club not found" });
       }
   
       // Check if the user exists
       const user = await Users.findByPk(userId);
-  
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -426,11 +359,10 @@
       const existingMembership = await ClubStatuses.findOne({
         where: {
           userId: userId,
-          clubId: club.id,
+          clubId: club.clubId,
           leftAt: null, // User is still a member if leftAt is null
         },
       });
-  
       if (existingMembership) {
         return res.status(400).json({ message: "User is already a member" });
       }
@@ -455,7 +387,8 @@
   });
   
   router.post("/clubs/exit", async (req, res) => {
-    const { userId, clubId } = req.body;
+    const {  clubId } = req.body;
+    const userId =req.session.sub
 
     try {
       const user = await Users.findByPk(userId);
@@ -499,7 +432,8 @@
   });
 
   router.post("/clubs/admin", async (req, res) => {
-    const { userId, clubId, toBeAdminUsername } = req.body;
+    const { clubId, toBeAdminUsername } = req.body;
+    const  userId = req.session.sub
 
     try {
       const user = await Users.findByPk(userId);

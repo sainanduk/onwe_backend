@@ -104,16 +104,47 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
 });
   // post by id
 
-  router.get('/posts/:postId', async (req, res) => {
+  router.get('/posts/:postId',verifier, async (req, res) => {
     const { postId } = req.params;
+    const userId =req.session.sub
   
     try {
-      const post = await Posts.findByPk(postId);
-      if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
-      }
-      res.json(post);
-    } catch (error) {
+
+      const posts = await Posts.findAll({
+        where: { id:postId,clubid: null },
+        include: [
+          {
+            model: Users,
+            as: 'user',
+            attributes: ['avatar', 'username']
+          },
+          {
+            model: PostLikes,
+            as: 'postLikes',
+            where: { userId: userId },
+            required: false 
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+  
+      // Map posts to transform Sequelize objects into plain JSON
+      const postsWithLikes = posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        userid: post.userid,
+        avatar:post.user.avatar,
+        username: post.user ? post.user.username : null, // Access the username from the included User model
+        likes: post.likes,
+        tags: post.tags,
+        media: post.media,
+        category: post.category,
+        liked: post.postLikes.length > 0 // Check if there are likes for the user
+      }));
+  
+      res.json(postsWithLikes);
+    }  catch (error) {
       console.error('Error fetching post by ID:', error);
       res.status(500).json({ message: 'Failed to fetch post' });
     }

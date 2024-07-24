@@ -12,7 +12,9 @@ const searchRoute = require('./Routes/search_route.js')
 const UserFollowing = require('./models/userfollowing');
 const UserFollowers = require('./models/userfollowers');
 const mobileLogin = require("./mobile/routes/signin.js");
+const mobile_login = require("./mobile/routes/signin2.js");
 const Admins = require('./models/Admins');
+
 const Clubs = require('./models/Clubs');
 const Comments = require('./models/Comments');
 const Event = require('./models/Event');
@@ -44,9 +46,11 @@ app.use(searchRoute);
 app.use(mobileLogin);
 app.use(ExploreRoutes)
 app.use(commentsRoutes);
-app.use(clubRoutes);
+app.use(verifier,clubRoutes);
 app.use(updateusers)
 app.use(polls_route)
+app.use(mobile_login);
+
 // app.use('/api',verifier,UserUpdateRoute)
 // app.use('/api',verifier,FollowersFollowing)
 
@@ -138,7 +142,7 @@ cron.schedule('0 * * * *', () => {
   deleteOldPosts();
 });
 // Start the server
-const PORT = 3000||3001||3002||3003;
+const PORT = process.argv[2] || process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });
