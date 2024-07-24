@@ -12,7 +12,6 @@ const searchRoute = require('./Routes/search_route.js')
 const UserFollowing = require('./models/userfollowing');
 const UserFollowers = require('./models/userfollowers');
 const mobileLogin = require("./mobile/routes/signin.js");
-const mobile_login = require("./mobile/routes/signin2.js");
 const Admins = require('./models/Admins');
 
 const Clubs = require('./models/Clubs');
@@ -34,6 +33,7 @@ const updateusers =require('./Routes/Users_route.js');
 const PollOptions = require('./models/PollOptions.js');
 const Polls = require('./models/Polls.js');
 const polls_route =require('./Routes/polls_route.js')
+const mobileverifier = require('./mobile/routes/middleware/mobileverifier.js')
 const app = express();
 app.use(bodyParser.json());
 app.use(cors())
@@ -41,15 +41,17 @@ app.use(cors())
 app.use(authRoutes);
 app.use(magazineRoutes);
 app.use(EventRoutes)
-app.use(postsRoutes);
+app.use(verifier,postsRoutes);
+app.use('/mobile',mobileverifier,postsRoutes)
 app.use(searchRoute);
 app.use(mobileLogin);
-app.use(ExploreRoutes)
+app.use(verifier,ExploreRoutes)
+app.use('/mobile',verifier,ExploreRoutes)
 app.use(commentsRoutes);
 app.use(verifier,clubRoutes);
 app.use(updateusers)
 app.use(polls_route)
-app.use(mobile_login);
+
 
 // app.use('/api',verifier,UserUpdateRoute)
 // app.use('/api',verifier,FollowersFollowing)

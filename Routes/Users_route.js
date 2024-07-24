@@ -129,7 +129,7 @@ router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) 
       console.error('Error updating user:', error);
       res.status(500).json({ message: 'Failed to update user' });
     }
-  });
+});
 
 
 module.exports = router;

@@ -1,49 +1,50 @@
-const express = require("express");
-const dotenv = require("dotenv");
-dotenv.config();
-const Users = require("../../models/Users");
-const { clerkClient } = require("../../Config/client");
+const express = require('express');
 const router = express.Router();
+const Users = require('../../models/Users');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt'); 
 
-router.post("/mobileLogin", async (req, res, next) => {
+// Environment variables
+require('dotenv').config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// Signin route
+router.post('/mobile_signin', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
   try {
-    const { username, password } = req.body;
-    console.log(username, password);
-    // Find the user by username
-    const user = await Users.findOne({ where: { username: username } });
+    // Find user by email
+    const user = await Users.findOne({ where: { email: email } });
 
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Verify the user's password
-    const userId = user.id.toString(); // Ensure userId is a string
-    const verify = await clerkClient.users.verifyPassword({
-      userId: userId,
-      password: password,
-    });
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
 
-
-
-    if (!verify) {
-      return res.status(400).json({ message: "Invalid Password" });
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Create a sign-in token
-    // const expiresInSeconds = 60 * 60 * 24 * 7;
-    const response = await clerkClient.signInTokens.createSignInToken({
-      userId
-    });
-    // const data
-    console.log(response);
-    res.send(response);
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      JWT_SECRET,
+    );
 
-    
+    // Respond with token
+    res.status(200).json({ token: token });
+
   } catch (error) {
-    console.error("Error during mobile login:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error during signin:', error.message || error);
+    res.status(500).json({ message: 'Internal Server Error', details: error.message || error });
   }
 });
-
 
 module.exports = router;

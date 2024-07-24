@@ -4,9 +4,22 @@ dotenv.config();
 const Users = require("../models/Users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { clerkClient } = require("../Config/client");
 const router = express.Router();
+const sendEmail  = require("../mobile/routes/middleware/otp");
 const secret = process.env.SECRET_KEY;
+const crypto = require('crypto');
+
+function generatePasskey(length = 16) {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=';
+    let passkey = '';
+    const bytes = crypto.randomBytes(length);
+    for (let i = 0; i < length; i++) {
+        passkey += charset[bytes[i] % charset.length];
+    }
+    return passkey;
+}
+
+
 
 // Sign-up route
 router.post("/Adminsignup", async (req, res) => {
@@ -117,7 +130,6 @@ router.post("/webhook", async (req, res) => {
   const user = event.data;
 
 
-
   if (event.type === "user.created") {
     const userId = user.id;
     const username = user.username;
@@ -142,12 +154,17 @@ router.post("/webhook", async (req, res) => {
         
       }
       else{
+      const passkey = generatePasskey(16);
+      const hashedPassword = await bcrypt.hash(passkey, 10);
       await Users.create({
         id: userId,
         username: username,
         email: email,
+        password:hashedPassword
       });
+      console.log(passkey);
 
+      //sendEmail(passkey,email)
         console.log(`User with ID ${userId} created successfully.`);
         return res.status(201).json({ message: "User created" });
       }

@@ -20,7 +20,7 @@ router.get('/topclubs',async(req,res)=>{
     res.status(500).json({message:"Error fetching top clubs"})
 }
 })
-router.get('/top-posts',verifier, async (req, res) => {
+router.get('/top-posts', async (req, res) => {
     const id = req.session.sub
     console.log(id);
     try {
