@@ -86,4 +86,4 @@ router.post('/Admin/events', uploadimages, processimages, async (req, res) => {
       res.status(500).json({ message: 'Failed to delete event' });
     }
   });
-  
+module.exports=router

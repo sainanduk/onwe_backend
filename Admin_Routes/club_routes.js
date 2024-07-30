@@ -9,7 +9,7 @@ const processimages = require("../middlewares/processimages");
 const isAdmin = require("../middlewares/adminCheck");
 const uploadImages = createMulterUpload();
 const ClubStatuses = require("../models/clubstatuses");
-const verifier=require('../middlewares/verifier');
+
 const PostLikes = require('../models/postLikes');
 
 
@@ -49,3 +49,4 @@ const PostLikes = require('../models/postLikes');
       res.status(500).json({ message: "Failed to create club" });
     }
   });
+module.exports=router
