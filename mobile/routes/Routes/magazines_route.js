@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Magazines = require('../models/Magazines');
+const Magazines = require('../../../models/Magazines');
 const createMulterUpload = require('../middlewares/uploadimages');
 
 // Get magazines route

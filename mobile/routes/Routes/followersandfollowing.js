@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const UserFollowing = require('../models/userfollowing'); // Adjust the path as per your project structure
+const UserFollowing = require('../../../models/userfollowing'); // Adjust the path as per your project structure
 
 // Route to check if user is following another user
 router.get('/check-follow', async (req, res) => {

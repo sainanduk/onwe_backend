@@ -1,9 +1,9 @@
 const express = require("express")
 const router = express.Router()
-const Posts =require('../models/Posts')
-const Clubs =require('../models/Clubs')
-const PostLikes = require('../models/postLikes')
-const Users = require('../models/Users')
+const Posts =require('../../../models/Posts')
+const Clubs =require('../../../models/Clubs')
+const PostLikes = require('../../../models/postLikes')
+const Users = require('../../../models/Users')
 const verifier = require("../middlewares/verifier")
 
 

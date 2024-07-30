@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const Users = require('../models/Users');
-const Posts =require('../models/Posts')
+const Users = require('../../../models/Users');
+const Posts =require('../../../models/Posts')
 const {sequelize} = require('../Config/database')
-const userfollowers =require('../models/userfollowers')
-const userfollowing =require('../models/userfollowing')
-const Clubs =require('../models/Clubs')
+const userfollowers =require('../../../models/userfollowers')
+const userfollowing =require('../../../models/userfollowing')
+const Clubs =require('../../../models/Clubs')
 const verifier =require('../middlewares/verifier')
 // Route to search users by username
 router.get('/:tab/:search', async (req, res) => {
