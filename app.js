@@ -46,10 +46,10 @@ app.use(createevent)
 app.use(magazineRoutes);
 app.use(EventRoutes)
 app.use(postsRoutes);
-app.use('/mobile',mobileVerifier,postsRoutes)
+// app.use('/mobile',mobileVerifier,postsRoutes)
 app.use(searchRoute);
 app.use(verifier,ExploreRoutes)
-app.use('/mobile',verifier,ExploreRoutes)
+// app.use('/mobile',verifier,ExploreRoutes)
 app.use(commentsRoutes);
 app.use(verifier,clubRoutes);
 app.use(updateusers)
