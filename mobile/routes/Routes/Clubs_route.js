@@ -1,16 +1,16 @@
   const express = require("express");
   const router = express.Router();
-  const Clubs = require("../models/Clubs");
-  const Users = require("../models/Users");
+  const Clubs = require("../../../models/Clubs");
+  const Users = require("../../../models/Users");
   const { Op, where } = require("sequelize");
-  const Posts = require("../models/Posts");
+  const Posts = require("../../../models/Posts");
   const createMulterUpload = require("../middlewares/uploadimages");
   const processimages = require("../middlewares/processimages");
   const isAdmin = require("../middlewares/adminCheck");
   const uploadImages = createMulterUpload();
-  const ClubStatuses = require("../models/clubstatuses");
+  const ClubStatuses = require("../../../../../models/ClubStatuses");
   const verifier=require('../middlewares/verifier');
-  const PostLikes = require('../models/postLikes');
+  const PostLikes = require('../../../models/postLikes');
 
 //create posts and announcements in club
   router.post('mobile/clubs/posts', uploadImages, processimages, async (req, res) => {

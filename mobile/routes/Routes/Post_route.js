@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Posts = require('../models/Posts');
-const PostLikes =require('../models/postLikes')
+const Posts = require('../../../models/Posts');
+const PostLikes =require('../../../models/postLikes')
 const createMulterUpload = require('../middlewares/uploadimages');
 const processimages = require('../middlewares/processimages');
-const Comments = require('../models/Comments');
-const Users = require('../models/Users');
+const Comments = require('../../../models/Comments');
+const Users = require('../../../models/Users');
 const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 // Route to get all posts

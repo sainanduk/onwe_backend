@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const Comments = require('../models/Comments');
+const Comments = require('../../../models/Comments');
 const { Op } = require('sequelize');
-const Posts = require('../models/Posts')
-const Users = require('../models/Users')
+const Posts = require('../../../models/Posts')
+const Users = require('../../../models/Users')
 const verifier = require('../middlewares/verifier');
 
 router.get('/posts/:postId/comments', async (req, res) => {
