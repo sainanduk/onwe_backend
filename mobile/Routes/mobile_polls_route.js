@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const  Polls  = require('../models/Polls');
-const PollOptions = require('../models/PollOptions')
+const  Polls  = require('../../models/Polls');
+const PollOptions = require('../../models/PollOptions')
 
 // Create a new poll
-router.post('/polls', async (req, res) => {
+router.post('/mobile/polls', async (req, res) => {
   const { clubId, question, options, createdBy } = req.body;
   if (!clubId || !question || !options || !createdBy) {
     return res.status(400).send('Missing required fields');
@@ -30,7 +30,7 @@ router.post('/polls', async (req, res) => {
 });
 
 // Get poll details
-router.get('/polls/:id', async (req, res) => {
+router.get('/mobile/polls/:id', async (req, res) => {
   const pollId = req.params.id;
 
   try {
@@ -50,7 +50,7 @@ router.get('/polls/:id', async (req, res) => {
 });
 
 // Vote for a poll option
-router.post('/polls/:id/vote', async (req, res) => {
+router.post('/mobile/polls/:id/vote', async (req, res) => {
   const pollId = req.params.id;
   const { optionId } = req.body;
 

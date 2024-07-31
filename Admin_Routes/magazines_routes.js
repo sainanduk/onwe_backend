@@ -6,7 +6,7 @@ const processimages = require('../middlewares/processimages');
 const uploadimages = createMulterUpload(); // Initialize multer middleware
 const verifier = require('../middlewares/verifier');
 // Post magazine route
-router.post('/magazines', uploadimages, processimages, async (req, res) => {
+router.post('/admin/magazines', uploadimages, processimages, async (req, res) => {
 
   if (!req.mediaData) {
     return res.status(400).json({ error: 'Media data is missing' });

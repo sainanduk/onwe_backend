@@ -11,7 +11,7 @@ const authRoutes = require('./Routes/authroutes.js')
 const searchRoute = require('./Routes/search_route.js')
 const UserFollowing = require('./models/userfollowing');
 const UserFollowers = require('./models/userfollowers');
-const mobileLogin = require("./mobile/routes/signin.js");
+const mobileLogin = require("./mobile/signin.js");
 const Admins = require('./models/Admins');
 
 const Clubs = require('./models/Clubs');
@@ -33,65 +33,52 @@ const updateusers =require('./Routes/Users_route.js');
 const PollOptions = require('./models/PollOptions.js');
 const Polls = require('./models/Polls.js');
 const polls_route =require('./Routes/polls_route.js')
-const mobileVerifier = require('./mobile/routes/middleware/mobileverifier.js')
+//admin
 const createclub =require('./Admin_Routes/club_routes.js')
 const createevent =require('./Admin_Routes/event_routes.js')
+const createmagazine = require('./Admin_Routes/magazines_routes.js')
+
+//mobile
+const mobileexplore  =require('./mobile/Routes/mobile_explore_route.js')
+const mobileposts = require('./mobile/Routes/mobile_Post_route.js')
+const mobilemagazines =require('./mobile/Routes/mobile_magazines_route.js')
+const mobilesearch = require('./mobile/Routes/mobile_search_route.js')
+const mobileVerifier = require('./mobile/middleware/mobileverifier.js')
+const mobileevents = require('./mobile/Routes/mobile_event_routes.js')
 const app = express();
+
 app.use(bodyParser.json());
 app.use(cors())
+
+//mobile routes
 app.use(mobileLogin);
+app.use(mobileposts)
+app.use(mobileexplore)
+app.use(mobilemagazines)
+app.use(mobilesearch)
+app.use(mobileevents)
+//web routes
 app.use(authRoutes);
-app.use(createclub)
-app.use(createevent)
 app.use(magazineRoutes);
 app.use(EventRoutes)
 app.use(postsRoutes);
-// app.use('/mobile',mobileVerifier,postsRoutes)
 app.use(searchRoute);
 app.use(verifier,ExploreRoutes)
-// app.use('/mobile',verifier,ExploreRoutes)
 app.use(commentsRoutes);
 app.use(verifier,clubRoutes);
 app.use(updateusers)
 app.use(polls_route)
 
-
-// app.use('/api',verifier,UserUpdateRoute)
-// app.use('/api',verifier,FollowersFollowing)
-
-
+//admin routes
+app.use(createclub)
+app.use(createevent)
+app.use(createmagazine)
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Internal Server Error" });
 });
 
-// Define associations
-// Comments.belongsTo(Posts, { foreignKey: "postId" });
-// Comments.belongsTo(Users, { foreignKey: "userId" });
-// Clubs.belongsTo(Users, { foreignKey: "admin" });
-// Magazines.belongsTo(Admins, { foreignKey: "owner" });
-// Posts.belongsTo(Users, { foreignKey: "userId" });
-
-// Posts.hasMany(Comments, { foreignKey: "postId", as: "postComments" });
-// Users.hasMany(Comments, { foreignKey: "userId", as: "userComments" });
-// Users.hasMany(Clubs, { foreignKey: "admin", as: "adminClubs" });
-// Admins.hasMany(Magazines, { foreignKey: "owner", as: "ownedMagazines" });
-// Users.hasMany(Posts, { foreignKey: "userId", as: "userPosts" });
-// Posts.hasMany(PostLikes, { foreignKey: 'postId', as: 'postLikes' });
-// PostLikes.belongsTo(Posts, { foreignKey: 'postId' });
-
-
-
-
-// // Users model associations
-// Users.hasMany(UserFollowers, { foreignKey: 'userId', as: 'followers' });
-// Users.hasMany(UserFollowing, { foreignKey: 'userId', as: 'following' });
-
-// // userfollowers and userfollowing model associations (if needed)
-// UserFollowers.belongsTo(Users, { foreignKey: 'followerId', as: 'follower' });
-// UserFollowing.belongsTo(Users, { foreignKey: 'followingId', as: 'followed' });
-// Comments associations
 Posts.belongsTo(Users, { as: 'user', foreignKey: 'userid' });
 Posts.hasMany(Comments, { foreignKey: 'postId', as: 'postComments' });
 Posts.hasMany(PostLikes, { foreignKey: 'postId', as: 'postLikes' });

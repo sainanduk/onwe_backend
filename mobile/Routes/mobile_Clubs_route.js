@@ -1,19 +1,17 @@
   const express = require("express");
   const router = express.Router();
-  const Clubs = require("../models/Clubs");
-  const Users = require("../models/Users");
-  const { Op, where } = require("sequelize");
-  const Posts = require("../models/Posts");
-  const createMulterUpload = require("../middlewares/uploadimages");
-  const processimages = require("../middlewares/processimages");
-  const isAdmin = require("../middlewares/adminCheck");
+  const Clubs = require("../../models/Clubs");
+  const Users = require("../../models/Users");
+  const Posts = require("../../models/Posts");
+  const createMulterUpload = require("../../middlewares/uploadimages");
+  const processimages = require("../../middlewares/processimages");
   const uploadImages = createMulterUpload();
-  const ClubStatuses = require("../models/clubstatuses");
-  const verifier=require('../middlewares/verifier');
-  const PostLikes = require('../models/postLikes');
+  const ClubStatuses = require("../../models/clubstatuses");
+  const verifier=require('../../middlewares/verifier');
+  const PostLikes = require('../../models/postLikes');
 
 //create posts and announcements in club
-  router.post('mobile/clubs/posts', uploadImages, processimages, async (req, res) => {
+  router.post('/mobile/clubs/posts', uploadImages, processimages, async (req, res) => {
     const { title, description, category, tags, clubname } = req.body;
     const userid = req.session.sub;
     console.log("club posts route working");
@@ -47,7 +45,7 @@
   });
 
 
-  router.get('/myclubs', async (req, res) => {
+  router.get('/mobile/myclubs', async (req, res) => {
     const userId = req.session.sub;
 
     try {
@@ -76,7 +74,7 @@
 
 
 
-  router.get('/clubs/check/:clubname', verifier, async (req, res) => {
+  router.get('/mobile/clubs/check/:clubname', verifier, async (req, res) => {
     const { clubname } = req.params; 
     const userId = req.session.sub;
     console.log("Today's route");
@@ -115,7 +113,7 @@
   });
   
   // general working done 
-  router.get('/clubs/:clubName/general', async (req, res) => {  
+  router.get('/mobile/clubs/:clubName/general', async (req, res) => {  
     
     const { clubName } = req.params;
     console.log("this is with general");
@@ -199,7 +197,7 @@
   });
 
   //announcement working done 
-  router.get('/clubs/:clubName/announcement',async (req, res) => {
+  router.get('/mobile/clubs/:clubName/announcement',async (req, res) => {
     console.log("this is with announcements");
     const { clubName } = req.params;
     
@@ -337,7 +335,7 @@
   //   }
   // });
 
-  router.post("/clubs/join",  async (req, res) => {
+  router.post("/mobile/clubs/join",  async (req, res) => {
     const { clubName } = req.body;
     const userId = req.session.sub;
   
@@ -386,7 +384,7 @@
     }
   });
   
-  router.post("/clubs/exit", async (req, res) => {
+  router.post("/mobile/clubs/exit", async (req, res) => {
     const {  clubId } = req.body;
     const userId =req.session.sub
 
@@ -431,7 +429,7 @@
     }
   });
 
-  router.post("/clubs/admin", async (req, res) => {
+  router.post("/mobile/clubs/admin", async (req, res) => {
     const { clubId, toBeAdminUsername } = req.body;
     const  userId = req.session.sub
 

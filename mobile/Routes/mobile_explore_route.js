@@ -1,13 +1,11 @@
 const express = require("express")
 const router = express.Router()
-const Posts =require('../models/Posts')
-const Clubs =require('../models/Clubs')
-const PostLikes = require('../models/postLikes')
-const Users = require('../models/Users')
-const verifier = require("../middlewares/verifier")
-
-
-router.get('/topclubs',async(req,res)=>{
+const Posts =require('../../models/Posts')
+const Clubs =require('../../models/Clubs')
+const PostLikes = require('../../models/postLikes')
+const Users = require('../../models/Users')
+const mobileVerifier = require('../middleware/mobileverifier')
+router.get('/mobile/topclubs',mobileVerifier,async(req,res)=>{
     try{
     const Topclubs= await Clubs.findAll({
         attributes:['clubId','clubName','coverImage','slogan'],
@@ -20,8 +18,8 @@ router.get('/topclubs',async(req,res)=>{
     res.status(500).json({message:"Error fetching top clubs"})
 }
 })
-router.get('/top-posts', async (req, res) => {
-    const id = req.session.sub
+router.get('/mobile/top-posts', mobileVerifier,async (req, res) => {
+    const id = req.userid
     console.log(id);
     try {
         const Top_posts = await Posts.findAll({

@@ -13,7 +13,7 @@ const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 
 
-router.post('/user/info', verifier, async (req, res) => {
+router.post('/mobile/user/info', verifier, async (req, res) => {
   const id = req.session.sub;
   console.log("working");
 
@@ -95,7 +95,7 @@ router.post('/user/info', verifier, async (req, res) => {
 });
 
 
-router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) => {
+router.patch('/mobile/user/edit',verifier,uploadimages,processimages, async (req, res) => {
     const userId  = req.session.sub;
     const { fullname, bio, socials, department, password } = req.body;
     console.log("work");

@@ -93,7 +93,82 @@ router.post('/user/info', verifier, async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 });
+router.get('/user/:username', async (req, res) => {
+  const {username}=req.params
 
+  try {
+      
+    const user = await Users.findOne({where:{username:username}});
+
+    const postsPromise = Posts.findAll({
+        where: { userid: user.id, clubid: null },
+        include: [
+            {
+                model: Users,
+                as: 'user',
+                attributes: ['avatar', 'username']
+            },
+            {
+                model: PostLikes,
+                as: 'postLikes',
+                where: { userId: user.id },
+                required: false
+            }
+        ],
+        order: [['createdAt', 'DESC']]
+    });
+
+    
+    const followersCountPromise = userfollowers.count({
+        where: { userId: user.id }
+    });
+
+    
+    const followingCountPromise = userfollowing.count({
+        where: { userId: user.id }
+    });
+
+    
+    const [ posts, followersCount, followingCount] = await Promise.all([
+        postsPromise,
+        followersCountPromise,
+        followingCountPromise
+    ]);
+
+    
+    const postsWithLikes = posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        userid: post.userid,
+        avatar: post.user.avatar,
+        username: post.user ? post.user.username : null, 
+        likes: post.likes,
+        tags: post.tags,
+        media: post.media,
+        category: post.category,
+        liked: post.postLikes.length > 0 
+    }));
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    
+    const response = {
+        user: user.toJSON(),
+        posts:postsWithLikes,
+        followersCount,
+        followingCount
+    };
+
+    res.status(200).json(response);
+
+} catch (error) {
+    console.error('Error fetching user information:', error);
+    res.status(500).json({ message: 'Server error' });
+}
+});
 
 router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) => {
     const userId  = req.session.sub;

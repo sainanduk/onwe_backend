@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Comments = require('../models/Comments');
-const { Op } = require('sequelize');
-const Posts = require('../models/Posts')
-const Users = require('../models/Users')
-const verifier = require('../middlewares/verifier');
+const Comments = require('../../models/Comments');
+const Posts = require('../../models/Posts')
+const Users = require('../../models/Users')
+const mobileVerifier = require('../middleware/mobileverifier');
 
-router.get('/posts/:postId/comments', async (req, res) => {
+router.get('/mobile/posts/:postId/comments', async (req, res) => {
     const { postId } = req.params;
     console.log("postId",postId)
   
@@ -37,7 +36,7 @@ router.get('/posts/:postId/comments', async (req, res) => {
   });
 
 // Route to get a specific comment by ID
-router.get('/comments/:commentId', async (req, res) => {
+router.get('/mobile/comments/:commentId', async (req, res) => {
   const { commentId } = req.params;
 
   try {
@@ -78,7 +77,7 @@ router.get('/comments/:commentId', async (req, res) => {
 //     res.status(500).json({ message: 'Failed to fetch comments' });
 //   }
 // });
-router.post('/subcomments', async (req, res) => {
+router.post('/mobile/subcomments', async (req, res) => {
   const { postId, parentId } = req.body;
 
   try {
@@ -105,7 +104,7 @@ router.post('/subcomments', async (req, res) => {
 
   
 // Route to create a new comment and update the post's comments array
-router.post('/comments', verifier ,async (req, res) => {
+router.post('/mobile/comments', mobileVerifier,async (req, res) => {
   const { postId,  content,parentId} = req.body;
   const userId = req.session.sub
 
@@ -128,7 +127,7 @@ router.post('/comments', verifier ,async (req, res) => {
 });
 
 // Route to delete a comment by ID
-router.delete('/comments/:commentId', verifier,async (req, res) => {
+router.delete('/mobile/comments/:commentId', mobileVerifier,async (req, res) => {
   const { commentId } = req.params;
   const userid =req.session.sub
 
@@ -161,7 +160,7 @@ router.delete('/comments/:commentId', verifier,async (req, res) => {
   }
 });
 
-router.delete('/user/post/:postId/:commentId', async (req, res) => {
+router.delete('/mobile/user/post/:postId/:commentId', async (req, res) => {
   try {
     const userId = req.session.sub
     const { postId, commentId } = req.params

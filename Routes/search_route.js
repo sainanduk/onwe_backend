@@ -9,7 +9,7 @@ const userfollowing =require('../models/userfollowing')
 const Clubs =require('../models/Clubs')
 const verifier =require('../middlewares/verifier')
 // Route to search users by username
-router.get('/:tab/:search', async (req, res) => {
+router.get('/explore/:tab/:search', async (req, res) => {
   const { tab,search } = req.params;
   try {
   if(tab==='clubs'){

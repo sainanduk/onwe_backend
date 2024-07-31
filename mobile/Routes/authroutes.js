@@ -5,7 +5,7 @@ const Users = require("../models/Users");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const sendEmail  = require("../mobile/routes/middleware/otp");
+const sendEmail  = require("../mobile/middleware/otp");
 const secret = process.env.SECRET_KEY;
 const crypto = require('crypto');
 

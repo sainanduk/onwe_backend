@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const Posts = require('../models/Posts');
-const PostLikes =require('../models/postLikes')
-const createMulterUpload = require('../middlewares/uploadimages');
-const processimages = require('../middlewares/processimages');
-const Comments = require('../models/Comments');
-const Users = require('../models/Users');
-const verifier = require('../middlewares/verifier');
+const Posts = require('../../models/Posts');
+const PostLikes =require('../../models/postLikes')
+const createMulterUpload = require('../../middlewares/uploadimages');
+const processimages = require('../../middlewares/processimages');
+const Comments = require('../../models/Comments');
+const Users = require('../../models/Users');
+const mobileVerifier = require('../middleware/mobileverifier')
 const uploadimages = createMulterUpload();
 // Route to get all posts
-router.get('/posts',verifier, async (req, res) => {
-  const userId = req.session.sub
+router.get('/mobile/posts',mobileVerifier, async (req, res) => {
+  const userId = req.userid
 
 
   try {
@@ -57,7 +57,7 @@ router.get('/posts',verifier, async (req, res) => {
   }
 });
 //getpost by category
-router.get('/posts/category/:category',verifier, async (req, res) => {
+router.get('/mobile/posts/category/:category',mobileVerifier, async (req, res) => {
   const { category } = req.params;
   const userId =req.session.sub;
 
@@ -104,7 +104,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
 });
   // post by id
 
-  router.get('/posts/:postId',verifier, async (req, res) => {
+  router.get('/mobile/posts/:postId', async (req, res) => {
     const { postId } = req.params;
     const userId =req.session.sub
   
@@ -150,7 +150,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
     }
   });
   //by userid to show user posts to user
-  router.get('/user/:userId/posts', async (req, res) => {
+  router.get('/mobile/user/:userId/posts', async (req, res) => {
     const { userId } = req.params;
   
     try {
@@ -173,7 +173,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
   //create new post
  
 
-  router.post('/posts',verifier,uploadimages, processimages, async (req, res) => {
+  router.post('/mobile/posts',mobileVerifier,uploadimages, processimages, async (req, res) => {
     const { title, description,category, tags, clubid } = req.body;
     const userid = req.session.sub
   
@@ -204,7 +204,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
 
   //delete post 
 
-  router.delete('/posts/:postId', async (req, res) => {
+  router.delete('/mobile/posts/:postId', async (req, res) => {
     const { postId } = req.params;
   
     try {
@@ -231,7 +231,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
   });
   
 
-  router.patch('/posts/like',verifier, async (req, res) => {
+  router.patch('/mobile/posts/like',mobileVerifier, async (req, res) => {
     const userId  = req.session.sub;
     const {postId}  = req.body; 
     if(!postId || !userId){

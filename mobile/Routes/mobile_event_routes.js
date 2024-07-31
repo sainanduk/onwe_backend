@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Event = require('../models/Event');
+const Event = require('../../models/Event');
 // Get all events
-router.get('/events', async (req, res) => {
+router.get('/mobile/events', async (req, res) => {
   try {
     const events = await Event.findAll({
       attributes: ["id",'title', 'media','dateOfEvent','description','time',"subtitle","category"]
@@ -15,7 +15,7 @@ router.get('/events', async (req, res) => {
 });
 
 // Get event by ID
-router.get('/events/:id', async (req, res) => {
+router.get('/mobile/events/:id', async (req, res) => {
   const { id } = req.params;
 
   try {

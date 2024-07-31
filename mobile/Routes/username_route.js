@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { Op } = require('sequelize');
-const Users = require('../models/Users');
+const Users = require('../../models/Users');
 
 // Route to search users by username
-router.post('/users/username', async (req, res) => {
+router.post('/mobile/users/username', async (req, res) => {
     const { username } = req.body;
   
     try {

@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const UserFollowing = require('../models/userfollowing'); // Adjust the path as per your project structure
-
+const UserFollowing = require('../../models/userfollowing');
 // Route to check if user is following another user
-router.get('/check-follow', async (req, res) => {
+router.get('/mobile/check-follow', async (req, res) => {
   const { username, followUsername } = req.body;
 
   try {
@@ -27,7 +26,7 @@ router.get('/check-follow', async (req, res) => {
 });
 
 
-router.post('/follow', async (req, res) => {
+router.post('/mobile/follow', async (req, res) => {
     const { username, followUsername } = req.body;
   
     try {
@@ -53,7 +52,7 @@ router.post('/follow', async (req, res) => {
       res.status(500).json({ message: 'Failed to follow user' });
     }
   });
-router.post('/unfollow', async (req, res) => {
+router.post('/mobile/unfollow', async (req, res) => {
     const { username, unfollowUsername } = req.body;
   
     try {

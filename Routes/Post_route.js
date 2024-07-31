@@ -45,6 +45,7 @@ router.get('/posts',verifier, async (req, res) => {
       tags: post.tags,
       media: post.media,
       category: post.category,
+      createdAt:post.createdAt,
       liked: post.postLikes.length > 0 // Check if there are likes for the user
     }));
 
@@ -93,6 +94,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
       tags: post.tags,
       media: post.media,
       category: post.category,
+      createdAt:post.createdAt,
       liked: post.postLikes.length > 0 // Check if there are likes for the user
     }));
 
@@ -140,6 +142,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
         tags: post.tags,
         media: post.media,
         category: post.category,
+        createdAt:post.createdAt,
         liked: post.postLikes.length > 0 // Check if there are likes for the user
       }));
   
