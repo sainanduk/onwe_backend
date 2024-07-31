@@ -13,7 +13,7 @@
 //create posts and announcements in club
   router.post('/mobile/clubs/posts', uploadImages, processimages, async (req, res) => {
     const { title, description, category, tags, clubname } = req.body;
-    const userid = req.session.sub;
+    const userid = req.userid;
     console.log("club posts route working");
     try {
       // Find club by name
@@ -46,7 +46,7 @@
 
 
   router.get('/mobile/myclubs', async (req, res) => {
-    const userId = req.session.sub;
+    const userId = req.userid;
 
     try {
       const userClubs = await ClubStatuses.findAll({
