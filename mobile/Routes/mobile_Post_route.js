@@ -9,14 +9,17 @@ const Users = require('../../models/Users');
 const mobileVerifier = require('../middleware/mobileverifier')
 const uploadimages = createMulterUpload();
 // Route to get all posts
-router.get('/mobile/posts',mobileVerifier, async (req, res) => {
-  const userId = req.userid
-
+router.get('/mobile/posts', mobileVerifier, async (req, res) => {
+  const userId = req.userid;
+  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+  const limit = parseInt(req.query.limit) || 7; // Default to 7 posts if not provided
+  const offset = (page - 1) * limit;
 
   try {
-
     let posts = await Posts.findAll({
       where: { clubid: null },
+      limit: limit,
+      offset: offset,
       include: [
         {
           model: Users,
@@ -39,7 +42,7 @@ router.get('/mobile/posts',mobileVerifier, async (req, res) => {
       title: post.title,
       description: post.description,
       userid: post.userid,
-      avatar:post.user.avatar,
+      avatar: post.user.avatar,
       username: post.user ? post.user.username : null, // Access the username from the included User model
       likes: post.likes,
       tags: post.tags,
