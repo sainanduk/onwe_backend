@@ -10,13 +10,16 @@ const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 // Route to get all posts
 router.get('/posts',verifier, async (req, res) => {
-  const userId = req.session.sub
-
+  const userId = req.session.sub;
+  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+  const limit = parseInt(req.query.limit) || 7; // Default to 7 posts if not provided
+  const offset = (page - 1) * limit;
 
   try {
-
     let posts = await Posts.findAll({
       where: { clubid: null },
+      limit: limit,
+      offset: offset,
       include: [
         {
           model: Users,
@@ -61,11 +64,15 @@ router.get('/posts',verifier, async (req, res) => {
 router.get('/posts/category/:category',verifier, async (req, res) => {
   const { category } = req.params;
   const userId =req.session.sub;
-
+  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+  const limit = parseInt(req.query.limit) || 7; // Default to 7 posts if not provided
+  const offset = (page - 1) * limit;
   try {
 
     const posts = await Posts.findAll({
       where: { category:category,clubid: null },
+      limit:limit,
+      offset:offset,
       include: [
         {
           model: Users,
@@ -97,7 +104,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
       createdAt:post.createdAt,
       liked: post.postLikes.length > 0 // Check if there are likes for the user
     }));
-
+    console.log(postsWithLikes);
     res.json(postsWithLikes);
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -114,6 +121,7 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
 
       const posts = await Posts.findAll({
         where: { id:postId,clubid: null },
+        limit:6,
         include: [
           {
             model: Users,

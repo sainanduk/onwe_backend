@@ -71,7 +71,7 @@ router.post('/user/info', verifier, async (req, res) => {
           tags: post.tags,
           media: post.media,
           category: post.category,
-          liked: post.postLikes.length > 0 
+          liked: post.postLikes.length > 0
       }));
 
       if (!user) {
@@ -178,7 +178,7 @@ router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) 
     try {
      
       let user = await Users.findByPk(userId);
-  
+
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
