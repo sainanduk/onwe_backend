@@ -20,7 +20,7 @@ router.post('/user/info', verifier, async (req, res) => {
   try {
       
       const userPromise = Users.findByPk(id, {
-          attributes: ['username', 'avatar', 'email', 'fullname', 'bio']
+          attributes: ['username', 'avatar', 'email', 'fullname', 'bio', 'links']
       });
 
       const postsPromise = Posts.findAll({
@@ -172,7 +172,7 @@ router.get('/user/:username', async (req, res) => {
 
 router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) => {
     const userId  = req.session.sub;
-    const { fullname, bio, socials, department, password } = req.body;
+    const { fullname, bio, socials, department, password, links } = req.body;
     console.log("work");
   
     try {
@@ -186,6 +186,7 @@ router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) 
       user.bio = bio || user.bio;
       user.socials = socials || user.socials;
       user.department = department || user.department;
+      user.links = Array.isArray(links) ? links : user.links;
       user.updatedAt = new Date();
       if (req.mediaData && req.mediaData.length > 0) {
         if (req.mediaData.length >= 1) {
