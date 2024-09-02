@@ -33,6 +33,8 @@ const updateusers =require('./Routes/Users_route.js');
 const PollOptions = require('./models/PollOptions.js');
 const Polls = require('./models/Polls.js');
 const polls_route =require('./Routes/polls_route.js')
+const Votes = require('./models/Votes.js')
+const pollOption = require('./models/PollOptions.js')
 //admin
 const createclub =require('./Admin_Routes/club_routes.js')
 const createevent =require('./Admin_Routes/event_routes.js')
@@ -110,6 +112,9 @@ Comments.belongsTo(Users, { foreignKey: 'userId' });
 
 Magazines.belongsTo(Admins, { foreignKey: 'owner' });
 
+
+// Votes.belongsTo(PollOptions, { foreignKey: 'pollOptionId' });
+// Votes.belongsTo(Users, { foreignKey: 'userId' });
 
 
 const initializeDatabase = async () => {

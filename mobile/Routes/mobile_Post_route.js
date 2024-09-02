@@ -59,6 +59,7 @@ router.get('/mobile/posts', mobileVerifier, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch posts' });
   }
 });
+
 //getpost by category
 router.get('/mobile/posts/category/:category',mobileVerifier, async (req, res) => {
   const { category } = req.params;
@@ -105,6 +106,7 @@ router.get('/mobile/posts/category/:category',mobileVerifier, async (req, res) =
     res.status(500).json({ message: 'Failed to fetch posts' });
   }
 });
+
   // post by id
 
   router.get('/mobile/posts/:postId', async (req, res) => {
@@ -152,7 +154,8 @@ router.get('/mobile/posts/category/:category',mobileVerifier, async (req, res) =
       res.status(500).json({ message: 'Failed to fetch post' });
     }
   });
-  //by userid to show user posts to user
+
+  //by user id to show user posts to user
   router.get('/mobile/user/:userId/posts', async (req, res) => {
     const { userId } = req.params;
   
@@ -172,9 +175,7 @@ router.get('/mobile/posts/category/:category',mobileVerifier, async (req, res) =
     }
   });
 
-  
   //create new post
- 
 
   router.post('/mobile/posts',mobileVerifier,uploadimages, processimages, async (req, res) => {
     const { title, description,category, tags, clubid } = req.body;
@@ -200,10 +201,7 @@ router.get('/mobile/posts/category/:category',mobileVerifier, async (req, res) =
       console.error('Error creating post:', error);
       res.status(500).json({ message: 'Failed to create post' });
     }
-  });
-
-
-  
+  }); 
 
   //delete post 
 
@@ -233,7 +231,6 @@ router.get('/mobile/posts/category/:category',mobileVerifier, async (req, res) =
     }
   });
   
-
   router.patch('/mobile/posts/like',mobileVerifier, async (req, res) => {
     const userId  = req.session.sub;
     const {postId}  = req.body; 

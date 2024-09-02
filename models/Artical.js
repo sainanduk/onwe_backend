@@ -11,7 +11,7 @@ const Artical = sequelize.define('Artical', {
   owner: { type: DataTypes.STRING, references: { model: 'users', key: 'id' } },
   title: DataTypes.STRING,
   description: DataTypes.STRING,
-  likes: DataTypes.INTEGER,
+  likes: DataTypes.INTEGER, 
   createdAt: DataTypes.DATE,
 });
 

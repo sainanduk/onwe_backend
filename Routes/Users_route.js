@@ -188,13 +188,20 @@ router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) 
       user.department = department || user.department;
       user.links = Array.isArray(links) ? links : user.links;
       user.updatedAt = new Date();
-      if (req.mediaData && req.mediaData.length > 0) {
-        if (req.mediaData.length >= 1) {
-          user.avatar = req.mediaData[0].base64String; 
-        }
-        if (req.mediaData.length >= 2) {
-          user.coverimg = req.mediaData[1].base64String; 
-        }
+      console.log(req.mediaData)
+      if(req.mediaData.length==0){
+        user.avatar=""
+      }
+      else{
+
+          if (req.mediaData && req.mediaData.length > 0) {
+            if (req.mediaData.length >= 1) {
+              user.avatar = req.mediaData[0].base64String; 
+            }
+            if (req.mediaData.length >= 2) {
+              user.coverimg = req.mediaData[1].base64String; 
+            }
+          }
       }
   
       await user.save();
