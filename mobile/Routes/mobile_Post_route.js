@@ -10,7 +10,12 @@ const mobileVerifier = require('../middleware/mobileverifier')
 const uploadimages = createMulterUpload();
 // Route to get all posts
 router.get('/mobile/posts', mobileVerifier, async (req, res) => {
-  const userId = req.userid;
+  const token = req.session.token;
+  const userId = req.session.userid;
+  console.log(token);
+  console.log(userId);
+  
+  
   const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
   const limit = parseInt(req.query.limit) || 7; // Default to 7 posts if not provided
   const offset = (page - 1) * limit;
@@ -48,6 +53,7 @@ router.get('/mobile/posts', mobileVerifier, async (req, res) => {
       tags: post.tags,
       media: post.media,
       category: post.category,
+      createdAt: post.createdAt,
       liked: post.postLikes.length > 0 // Check if there are likes for the user
     }));
 

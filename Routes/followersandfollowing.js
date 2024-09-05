@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const UserFollowing = require('../models/userfollowing'); // Adjust the path as per your project structure
-
+const UserFollowers = require('../models/userfollowers')
 // Route to check if user is following another user
 router.get('/check-follow', async (req, res) => {
   const { username, followUsername } = req.body;
@@ -28,23 +28,25 @@ router.get('/check-follow', async (req, res) => {
 
 
 router.post('/follow', async (req, res) => {
+  console.log("hi");
+  
     const { username, followUsername } = req.body;
-  
     try {
-      // Check if the users exist and retrieve their IDs (assuming usernames are unique)
-      const [followingUser, followerUser] = await Promise.all([
-        UserFollowing.findOne({ where: { userId: username, followingId: followUsername } }),
-        UserFollowers.findOne({ where: { userId: followUsername, followerId: username } }),
-      ]);
+      console.log("___________________________________________________")
+      console.log(username,followUsername)
+      
+      const followingUser = await 
+        UserFollowers.findOne({ where: {username: username, followername: followUsername } })
+      
   
-      if (followingUser || followerUser) {
+      if (followingUser) {
         return res.status(400).json({ message: 'Already following or follower' });
       }
   
       // Create new records in both UserFollowing and UserFollowers tables
       await Promise.all([
-        UserFollowing.create({ userId: username, followingId: followUsername }),
-        UserFollowers.create({ userId: followUsername, followerId: username }),
+        UserFollowing.create({ username: username, followingname: followUsername }),
+        UserFollowers.create({ username: followUsername, followername: username }),
       ]);
   
       res.status(201).json({ message: 'Successfully followed' });
@@ -53,14 +55,14 @@ router.post('/follow', async (req, res) => {
       res.status(500).json({ message: 'Failed to follow user' });
     }
   });
+
 router.post('/unfollow', async (req, res) => {
     const { username, unfollowUsername } = req.body;
   
     try {
       // Delete records from both UserFollowing and UserFollowers tables
       await Promise.all([
-        UserFollowing.destroy({ where: { userId: username, followingId: unfollowUsername } }),
-        UserFollowers.destroy({ where: { userId: unfollowUsername, followerId: username } }),
+        UserFollowers.destroy({ where: { username: username, followerId: username } }),
       ]);
   
       res.status(200).json({ message: 'Successfully unfollowed' });

@@ -24,6 +24,10 @@ const PollOptions = sequelize.define('poll_options', {
     type: DataTypes.INTEGER,
     defaultValue: 0,
   },
+}, {
+  tableName: 'poll_options',
+  timestamps: false, // Add this if timestamps are not needed
 });
+
 
 module.exports = PollOptions;

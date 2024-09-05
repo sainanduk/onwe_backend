@@ -15,6 +15,8 @@
 //create posts and announcements in club
   router.post('/clubs/posts', uploadImages, processimages, async (req, res) => {
     const { title, description, category, tags, clubname } = req.body;
+    
+    
     const userid = req.session.sub;
     console.log("club posts route working");
     try {
@@ -38,7 +40,10 @@
         createdAt: new Date(),
         updatedAt: new Date()
       });
-  
+      
+      
+      console.log("posted sucess");
+        
       res.status(201).json({ message: 'Post created successfully' });
     } catch (error) {
       console.error('Error creating post:', error);
@@ -76,7 +81,7 @@
 
 
 
-  router.get('/clubs/check/:clubname', verifier, async (req, res) => {
+  router.get('/clubs/check/:clubname', async (req, res) => {
     const { clubname } = req.params; 
     const userId = req.session.sub;
     console.log("Today's route");

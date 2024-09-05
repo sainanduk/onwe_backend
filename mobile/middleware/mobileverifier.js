@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const { storeSessionData } = require('./session');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const mobileVerifier = (req, res, next) => {
-  console.log("mobile verfier");
+  console.log("mobile verifier");
   const token = req.headers['authorization']?.split(' ')[1];
 
   if (token == null) return res.status(401).json({ message: 'Token required' });
@@ -17,4 +18,4 @@ const mobileVerifier = (req, res, next) => {
   });
 };
 
-module.exports = mobileVerifier;
+module.exports = [mobileVerifier, storeSessionData];

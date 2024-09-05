@@ -47,7 +47,8 @@
 
   router.get('/mobile/myclubs', async (req, res) => {
     const userId = req.userid;
-
+    console.log("USERRRRRRRRRRRRRRRRRRRRRRR IDDDDDDDDDD::::::: ",userId);
+    
     try {
       const userClubs = await ClubStatuses.findAll({
         where: { userId: userId },
@@ -57,14 +58,15 @@
           attributes: ['clubId', 'clubName', 'coverImage'] 
         }]
       });
-
+      console.log(userClubs);
       const response = userClubs.map(userClub => ({
         id: userClub.id,
         clubName: userClub.club.clubName,
         coverImage: userClub.club.coverImage,
         isAdmin: userClubs.isAdmin
       }));
-
+      console.log(response);
+      
       res.json(response);
     } catch (error) {
       console.error('Error fetching user clubs:', error);

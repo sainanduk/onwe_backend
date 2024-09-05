@@ -5,8 +5,8 @@ const Comments = sequelize.define('comments', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   postId: { type: DataTypes.INTEGER, references: { model: 'posts', key: 'id' } },
   userId: { type: DataTypes.STRING, references: { model: 'users', key: 'id' } },
-  content: { type: DataTypes.STRING, allowNull: false },
-  parentId: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null, references: { model: 'comments', key: 'id' } },
+  content: { type: DataTypes.TEXT, allowNull: false },
+  parentId: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null },
   createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 });
 

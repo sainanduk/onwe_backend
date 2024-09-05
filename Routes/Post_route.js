@@ -286,7 +286,10 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
     catch (error) {
       console.error('Error updating likes:', error);
       res.status(500).json({ message: 'Failed to update likes' });
-    }
+    } userPromise,
+    postsPromise,
+    followersCountPromise,
+    followingCountPromise
   });
   
 module.exports=router

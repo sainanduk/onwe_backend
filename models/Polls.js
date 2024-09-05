@@ -7,16 +7,12 @@ const Polls = sequelize.define('polls', {
     primaryKey: true,
     autoIncrement: true,
   },
-  // clubId: {
-  //   type: DataTypes.INTEGER,
-  //   allowNull: false,
-  // },
   question: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
   createdBy: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   createdAt: {

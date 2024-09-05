@@ -5,31 +5,35 @@ const PollOptions = require('../models/PollOptions');
 const verifier = require('../middlewares/verifier');
 const Votes = require('../models/Votes')
 // Create a new poll
-router.post('/polls',verifier, async (req, res) => {
-  const { clubId, question, options } = req.body;
-  const createdBy=req.session.sub
+router.post('/polls', verifier,async (req, res) => {
+  const { question, options } = req.body;
+  const createdBy=req.session.sub;
   // Check for required fields
   if (!question || !options || !createdBy) {
     return res.status(400).send('Missing required fields');
   }
 
   try {
+    console.log("hi");
+    console.log(question,options);
+    
     // Create the poll
     const poll = await Polls.create({
-      clubId,
       question,
       createdBy,
     });
+    
+    
 
     // Create poll options
     const pollOptions = options.map(option => ({
       pollId: poll.id,
       optionText: option,
     }));
-
+    console.log("hello");
     // Save poll options to the database
     await PollOptions.bulkCreate(pollOptions);  
-
+    console.log("hiii");
     // Send the response
     res.status(201).send({ pollId: poll.id });
   } catch (error) {
@@ -39,6 +43,7 @@ router.post('/polls',verifier, async (req, res) => {
 });
 
 
+// Get all polls with pagination, options, and check if the user has voted
 // Get all polls with pagination, options, and check if the user has voted
 router.get('/polls', verifier, async (req, res) => {
   const userId = req.session.sub; // Get userId from session
@@ -53,11 +58,12 @@ router.get('/polls', verifier, async (req, res) => {
       include: [
         {
           model: PollOptions,
+          as: 'Options',  // Specify the alias used in the association
           attributes: ['id', 'optionText', 'votes'],
         },
         {
           model: Votes,
-          as: 'userVotes',
+          as: 'userVotes', // Ensure this alias is correctly defined in your models
           where: { userId: userId },
           required: false
         }
@@ -73,7 +79,7 @@ router.get('/polls', verifier, async (req, res) => {
         id: poll.id,
         question: poll.question,
         createdBy: poll.createdBy,
-        PollOptions: poll.PollOptions.map(option => ({
+        PollOptions: poll.Options.map(option => ({
           id: option.id,
           optionText: option.optionText,
           votes: userVote ? option.votes : null, // Show votes only if user has voted
@@ -88,6 +94,7 @@ router.get('/polls', verifier, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch polls' });
   }
 });
+
 
 
 // Vote for a poll option

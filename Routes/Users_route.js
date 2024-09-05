@@ -18,7 +18,8 @@ router.post('/user/info', verifier, async (req, res) => {
   console.log("working");
 
   try {
-      
+    const userdetails = await Users.findOne({where:{id:id}});
+    const username=userdetails.username
       const userPromise = Users.findByPk(id, {
           attributes: ['username', 'avatar', 'email', 'fullname', 'bio', 'links']
       });
@@ -42,13 +43,13 @@ router.post('/user/info', verifier, async (req, res) => {
       });
 
       
-      const followersCountPromise = userfollowers.count({
-          where: { userId: id }
+      const followingCountPromise = userfollowers.count({
+          where: { followername: username }
       });
 
       
-      const followingCountPromise = userfollowing.count({
-          where: { userId: id }
+      const followersCountPromise = userfollowers.count({
+          where: { username: username }
       });
 
       
@@ -83,7 +84,7 @@ router.post('/user/info', verifier, async (req, res) => {
           user: user.toJSON(),
           posts:postsWithLikes,
           followersCount,
-          followingCount
+          followingCount 
       };
 
       res.status(200).json(response);
@@ -119,20 +120,21 @@ router.get('/user/:username', async (req, res) => {
     });
 
     
+    const followingCountPromise = userfollowers.count({
+        where: { followername: username }
+    });
+
+    
     const followersCountPromise = userfollowers.count({
-        where: { userId: user.id }
+        where: { username:username }
     });
-
+    const isfollowing = userfollowers.findOne({where:{username:username}})
     
-    const followingCountPromise = userfollowing.count({
-        where: { userId: user.id }
-    });
-
-    
-    const [ posts, followersCount, followingCount] = await Promise.all([
+    const [ posts, followersCount, followingCount,followingstatus] = await Promise.all([
         postsPromise,
         followersCountPromise,
-        followingCountPromise
+        followingCountPromise,
+        isfollowing
     ]);
 
     
@@ -153,13 +155,20 @@ router.get('/user/:username', async (req, res) => {
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
-
+    var status=followingstatus
+    if(followingstatus===null){
+        status=false
+    }else{
+         status=true
+        
+    }
     
     const response = {
         user: user.toJSON(),
         posts:postsWithLikes,
         followersCount,
-        followingCount
+        followingCount,
+        status
     };
 
     res.status(200).json(response);
