@@ -1,25 +1,51 @@
 const express = require('express');
 const router = express.Router();
-const UserFollowing = require('../models/userfollowing'); // Adjust the path as per your project structure
-const UserFollowers = require('../models/userfollowers')
-// Route to check if user is following another user
-router.get('/check-follow', async (req, res) => {
+const userfollowers = require('../models/userfollowers');
+const verifier = require('../middlewares/verifier');
+
+
+router.post('/checkfollow', async (req, res) => {
   const { username, followUsername } = req.body;
 
+  
   try {
-    // Check if there is a record in UserFollowing for the given pair of usernames
-    const isFollowing = await UserFollowing.findOne({
+
+    if(!followUsername && !username){
+      return res.status(400).send("username and following missing")
+    }
+    else if(followUsername===username){
+      const followingCountPromise = await userfollowers.count({
+        where: { follower: username }
+    });
+  
+    const followersCountPromise = await userfollowers.count({
+        where: { following:followUsername }
+    });
+  
+      return res.status(200).json({ status: false,followers:followersCountPromise,following:followingCountPromise });
+    }
+    else if(username && followUsername)
+    {
+    const isFollowing = await userfollowers.findOne({
       where: {
-        userId: username,
-        followingId: followUsername
+        follower: username,
+        following: followUsername
       }
     });
+    const followingCountPromise = await userfollowers.count({
+      where: { follower: followUsername }
+  });
 
+  
+  const followersCountPromise = await userfollowers.count({
+      where: { following:followUsername }
+  });
     if (isFollowing) {
-      res.status(200).json({ following: true });
+      return res.status(200).json({ status: true ,followers:followersCountPromise,following:followingCountPromise});
     } else {
-      res.status(200).json({ following: false });
+      return res.status(200).json({ status: false,followers:followersCountPromise,following:followingCountPromise });
     }
+  }
   } catch (error) {
     console.error('Error checking if user is following:', error);
     res.status(500).json({ message: 'Failed to check if user is following' });
@@ -27,68 +53,47 @@ router.get('/check-follow', async (req, res) => {
 });
 
 
-router.post('/follow', async (req, res) => {
-  console.log("hi");
-  
-    const { username, followUsername } = req.body;
-    try {
-      console.log("___________________________________________________")
-      console.log(username,followUsername)
-      
-      const followingUser = await 
-        UserFollowers.findOne({ where: {username: username, followername: followUsername } })
-      
-  
-      if (followingUser) {
-        return res.status(400).json({ message: 'Already following or follower' });
-      }
-  
-      // Create new records in both UserFollowing and UserFollowers tables
-      await Promise.all([
-        UserFollowing.create({ username: username, followingname: followUsername }),
-        UserFollowers.create({ username: followUsername, followername: username }),
-      ]);
-  
-      res.status(201).json({ message: 'Successfully followed' });
-    } catch (error) {
-      console.error('Error following user:', error);
-      res.status(500).json({ message: 'Failed to follow user' });
+// Route to follow a user
+router.post('/follow',verifier, async (req, res) => {
+  const { username, followUsername } = req.body;
+
+  try {
+    
+    const followingUser = await userfollowers.findOne({ 
+      where: { follower: username, following: followUsername } 
+    });
+
+    if (followingUser) {
+      return res.status(400).json({ message: 'Already following this user' });
     }
-  });
 
-router.post('/unfollow', async (req, res) => {
-    const { username, unfollowUsername } = req.body;
-  
-    try {
-      // Delete records from both UserFollowing and UserFollowers tables
-      await Promise.all([
-        UserFollowers.destroy({ where: { username: username, followerId: username } }),
-      ]);
-  
-      res.status(200).json({ message: 'Successfully unfollowed' });
-    } catch (error) {
-      console.error('Error unfollowing user:', error);
-      res.status(500).json({ message: 'Failed to unfollow user' });
-    }
-  });  
+    await userfollowers.create({ follower: username, following: followUsername });
+
+    return res.status(201).json({ message: 'Successfully followed' ,status:true});
+  } catch (error) {
+    console.error('Error following user:', error);
+    return res.status(500).json({ message: 'Failed to follow user' ,status:false});
+  }
+});
 
 
-  // Route to get count of followers and following
-// router.get('/followers-following-count/:username', async (req, res) => {
-//   const { username } = req.params;
+// Route to unfollow a user
+router.post('/unfollow',verifier, async (req, res) => {
+  const { username, unfollowUsername } = req.body;
 
-//   try {
-//     // Count of users following the given username
-//     const followersCount = await UserFollowers.count({ where: { userId: username } });
+  try {
+    // Delete records from UserFollowers table
+    console.log("hi");
+    
+    await userfollowers.destroy({ where: { follower: username, following: unfollowUsername } });
+    console.log("hello");
+    
+    return  res.status(200).json({ message: 'Successfully unfollowed' ,status:false});
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    return res.status(500).json({ message: 'Failed to unfollow user',status:true });
+  }
+});
 
-//     // Count of users whom the given username is following
-//     const followingCount = await UserFollowing.count({ where: { userId: username } });
-
-//     res.status(200).json({ followersCount, followingCount });
-//   } catch (error) {
-//     console.error('Error fetching followers and following count:', error);
-//     res.status(500).json({ message: 'Failed to fetch followers and following count' });
-//   }
-// });
 
 module.exports = router;

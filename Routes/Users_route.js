@@ -6,7 +6,6 @@ const { Op } = require('sequelize');
 const Posts = require('../models/Posts')
 const PostLikes =require('../models/postLikes')
 const userfollowers = require('../models/userfollowers')
-const userfollowing = require('../models/userfollowing')
 const createMulterUpload = require('../middlewares/uploadimages');
 const processimages = require('../middlewares/processimages');
 const verifier = require('../middlewares/verifier');
@@ -15,7 +14,7 @@ const uploadimages = createMulterUpload();
 
 router.post('/user/info', verifier, async (req, res) => {
   const id = req.session.sub;
-  console.log("working");
+  console.log("working user info");
 
   try {
     const userdetails = await Users.findOne({where:{id:id}});
@@ -44,12 +43,12 @@ router.post('/user/info', verifier, async (req, res) => {
 
       
       const followingCountPromise = userfollowers.count({
-          where: { followername: username }
+          where: { follower: username }
       });
 
       
       const followersCountPromise = userfollowers.count({
-          where: { username: username }
+          where: { following: username }
       });
 
       
@@ -94,14 +93,14 @@ router.post('/user/info', verifier, async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 });
-router.get('/user/:username', async (req, res) => {
+router.get('/user/:username',verifier, async (req, res) => {
   const {username}=req.params
-
+    
   try {
       
     const user = await Users.findOne({where:{username:username}});
 
-    const postsPromise = Posts.findAll({
+    const posts = await Posts.findAll({
         where: { userid: user.id, clubid: null },
         include: [
             {
@@ -119,25 +118,6 @@ router.get('/user/:username', async (req, res) => {
         order: [['createdAt', 'DESC']]
     });
 
-    
-    const followingCountPromise = userfollowers.count({
-        where: { followername: username }
-    });
-
-    
-    const followersCountPromise = userfollowers.count({
-        where: { username:username }
-    });
-    const isfollowing = userfollowers.findOne({where:{username:username}})
-    
-    const [ posts, followersCount, followingCount,followingstatus] = await Promise.all([
-        postsPromise,
-        followersCountPromise,
-        followingCountPromise,
-        isfollowing
-    ]);
-
-    
     const postsWithLikes = posts.map(post => ({
         id: post.id,
         title: post.title,
@@ -155,22 +135,13 @@ router.get('/user/:username', async (req, res) => {
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
-    var status=followingstatus
-    if(followingstatus===null){
-        status=false
-    }else{
-         status=true
-        
-    }
     
     const response = {
         user: user.toJSON(),
-        posts:postsWithLikes,
-        followersCount,
-        followingCount,
-        status
+        posts:postsWithLikes
     };
-
+    console.log("hi this nandu");
+    
     res.status(200).json(response);
 
 } catch (error) {

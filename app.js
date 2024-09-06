@@ -10,7 +10,6 @@ app.use(cors())
 
 //models
 const Admins = require('./models/Admins');
-const UserFollowing = require('./models/userfollowing');
 const UserFollowers = require('./models/userfollowers');
 const Clubs = require('./models/Clubs');
 const Comments = require('./models/Comments');
@@ -68,12 +67,12 @@ const mobileevents = require('./mobile/Routes/mobile_event_routes.js')
 
 
 //mobile routes
-app.use(mobileLogin);
-app.use(mobileposts)
-app.use(mobileexplore)
-app.use(mobilemagazines)
-app.use(mobilesearch)
-app.use(mobileevents)
+// app.use(mobileLogin);
+// app.use(mobileposts)
+// app.use(mobileexplore)
+// app.use(mobilemagazines)
+// app.use(mobilesearch)
+// app.use(mobileevents)
 //web routes
 app.use(verifier,clubRoutes);
 app.use(authRoutes);
@@ -105,8 +104,24 @@ Posts.hasMany(PostLikes, { foreignKey: 'postId', as: 'postLikes' });
 Users.hasMany(Comments, { foreignKey: 'userId', as: 'userComments' });
 Users.hasMany(Clubs, { foreignKey: 'admin', as: 'adminClubs' });
 Users.hasMany(Posts, { as: 'posts', foreignKey: 'userid' });
-Users.hasMany(UserFollowers, { foreignKey: 'userId', as: 'followers' });
-Users.hasMany(UserFollowing, { foreignKey: 'userId', as: 'following' });
+// Users.hasMany(UserFollowers, { foreignKey: 'followers', as: 'followers' });
+//Users.hasMany(UserFollowers, { foreignKey: 'following', as: 'following' });
+// Associate Users with UserFollowers where the user is the one being followed
+Users.hasMany(UserFollowers, { 
+  foreignKey: 'following', 
+  sourceKey: 'username',  
+  as: 'followers'          
+});
+
+// Associate Users with UserFollowers where the user is the one following others
+Users.hasMany(UserFollowers, { 
+  foreignKey: 'follower',  
+  sourceKey: 'username',   
+  as: 'followings'        
+});
+
+
+
 Users.hasMany(ClubStatus, { foreignKey: 'userId' });
 
 Admins.hasMany(Magazines, { foreignKey: 'owner', as: 'ownedMagazines' });
@@ -158,8 +173,8 @@ cron.schedule('0 * * * *', () => {
   deleteOldPosts();
 });
 
-// const PORT =  process.env[2]|| process.env.PORT||3000;
-const PORT=3005
+const PORT =  process.env[2]|| process.env.PORT||3000;
+// const PORT=3005
 app.listen(PORT, () => {
   console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });

@@ -5,7 +5,6 @@ const Users = require('../../models/Users');
 const Posts =require('../../models/Posts')
 const {sequelize} = require('../../Config/database')
 const userfollowers =require('../../models/userfollowers')
-const userfollowing =require('../../models/userfollowing')
 const Clubs =require('../../models/Clubs')
 const mobileVerifier =require('../middleware/mobileverifier')
 // Route to search users by username

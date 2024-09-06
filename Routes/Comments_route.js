@@ -119,6 +119,7 @@ router.post('/comments', verifier ,async (req, res) => {
       createdAt: new Date()
     });
     // Fetch the related post
+    
 
     res.status(201).json(newComment);
   } catch (error) {

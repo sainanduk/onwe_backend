@@ -5,7 +5,6 @@ const Users = require('../models/Users');
 const Posts =require('../models/Posts')
 const {sequelize} = require('../Config/database')
 const userfollowers =require('../models/userfollowers')
-const userfollowing =require('../models/userfollowing')
 const Clubs =require('../models/Clubs')
 const verifier =require('../middlewares/verifier')
 // Route to search users by username
@@ -42,57 +41,49 @@ router.get('/explore/:tab/:search', async (req, res) => {
   }
 });
 
-// router.get('/users/info', verifier,async (req, res) => {
-//   const id  = req.session.sub;
-//   console.log("working");
 
-//   try {
-//     // Fetch user details
-//     const userPromise = Users.findByPk(id, {
-//       attributes: ['username', 'avatar']
-//     });
 
-//     // Fetch user's posts
-//     const postsPromise = Posts.findAll({
-//       where: { userid: id,clubid:null},
-//       attributes: ['id', 'title', 'description', 'likes', 'media', 'createdAt']
-//     });
+router.get('/search/:user', async (req, res) => {
+  const {user } = req.params;
+  try {
 
-//     // Fetch followers count
-//     const followersCountPromise = userfollowers.count({
-//       where: { userId: id }
-//     });
+  
+    const users = await Users.findAll({
+      where: {
+        username: {
+          [Op.iLike]: `${user}%`
+        }
+      },
+      attributes: ['id', 'username','avatar'] 
+    });
 
-//     // Fetch following count
-//     const followingCountPromise = userfollowing.count({
-//       where: { userId: id }
-//     });
+    return res.json(users);
+  } catch (error) {
+    console.error('Error searching users by username:', error);
+    res.status(500).json({ message: 'Failed to search users' });
+  }
+});
 
-//     // Resolve promises concurrently
-//     const [user, posts, followersCount, followingCount] = await Promise.all([
-//       userPromise,
-//       postsPromise,
-//       followersCountPromise,
-//       followingCountPromise
-//     ]);
 
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
+router.get('/search/:Hashtag', async (req, res) => {
+  const {Hashtag } = req.params;
+  try {
 
-//     // Construct response object
-//     const response = {
-//       user: user.toJSON(),
-//       posts,
-//       followersCount,
-//       followingCount
-//     };
+  
+    const users = await Posts.findAll({
+      where: {
+        tags: {
+          [Op.iLike]: `${Hashtag}%`
+        }
+      },
+      attributes: ['id', 'username','avatar'] 
+    });
 
-//     res.json(response);
-//   } catch (error) {
-//     console.error('Error fetching user details, posts, followers, and following counts:', error);
-//     res.status(500).json({ message: 'Failed to fetch user details, posts, followers, and following counts' });
-//   }
-// });
+    return res.json(users);
+  } catch (error) {
+    console.error('Error searching users by username:', error);
+    res.status(500).json({ message: 'Failed to search users' });
+  }
+});
 
 module.exports = router;

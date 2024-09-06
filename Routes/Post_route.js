@@ -8,16 +8,19 @@ const Comments = require('../models/Comments');
 const Users = require('../models/Users');
 const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
+const { Op } = require('sequelize');
 // Route to get all posts
 router.get('/posts',verifier, async (req, res) => {
   const userId = req.session.sub;
-  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-  const limit = parseInt(req.query.limit) || 7; // Default to 7 posts if not provided
+  const page = parseInt(req.query.page) || 1; 
+  const limit = parseInt(req.query.limit) || 7; 
   const offset = (page - 1) * limit;
 
   try {
     let posts = await Posts.findAll({
-      where: { clubid: null },
+      where: { clubid: null ,userid: {
+        [Op.ne]: userId  
+      }},
       limit: limit,
       offset: offset,
       include: [
@@ -70,7 +73,9 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
   try {
 
     const posts = await Posts.findAll({
-      where: { category:category,clubid: null },
+      where: { category:category,clubid: null,userid: {
+        [Op.ne]: userId  
+      } },
       limit:limit,
       offset:offset,
       include: [
