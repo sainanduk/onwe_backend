@@ -17,6 +17,17 @@ const Users = sequelize.define('users', {
   links: { type: DataTypes.ARRAY(DataTypes.TEXT), defaultValue: [] },
   createdAt: DataTypes.DATE,
   updatedAt: DataTypes.DATE,
+}, {
+  indexes: [
+    {
+      name: 'idx_id',
+      fields: ['id'],
+    },
+    {
+      name: 'idx_username',
+      fields: ['username'],
+    },
+  ]
 });
 
 module.exports = Users;

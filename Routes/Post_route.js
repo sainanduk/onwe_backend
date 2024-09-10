@@ -118,53 +118,56 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
 });
   // post by id
 
-  router.get('/posts/:postId',verifier, async (req, res) => {
+router.get('/posts/:postId', verifier, async (req, res) => {
     const { postId } = req.params;
-    const userId =req.session.sub
+    const userId = req.session.sub;
   
     try {
-
-      const posts = await Posts.findAll({
-        where: { id:postId,clubid: null },
-        limit:6,
+      const post = await Posts.findOne({
+        where: { id: postId },
         include: [
           {
             model: Users,
             as: 'user',
-            attributes: ['avatar', 'username']
+            attributes: ['avatar', 'username'],
           },
           {
             model: PostLikes,
             as: 'postLikes',
             where: { userId: userId },
-            required: false 
-          }
+            required: false,
+          },
         ],
-        order: [['createdAt', 'DESC']]
       });
   
-      // Map posts to transform Sequelize objects into plain JSON
-      const postsWithLikes = posts.map(post => ({
+      // Check if the post was found
+      if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+  
+      // Transform Sequelize object into plain JSON
+      const postWithLikes = {
         id: post.id,
         title: post.title,
         description: post.description,
         userid: post.userid,
-        avatar:post.user.avatar,
-        username: post.user ? post.user.username : null, // Access the username from the included User model
+        avatar: post.user ? post.user.avatar : null,
+        username: post.user ? post.user.username : null,
         likes: post.likes,
         tags: post.tags,
         media: post.media,
         category: post.category,
-        createdAt:post.createdAt,
-        liked: post.postLikes.length > 0 // Check if there are likes for the user
-      }));
+        createdAt: post.createdAt,
+        liked: post.postLikes && post.postLikes.length > 0, // Check if there are likes for the user
+      };
   
-      res.json(postsWithLikes);
-    }  catch (error) {
+      res.json(postWithLikes);
+    } catch (error) {
       console.error('Error fetching post by ID:', error);
       res.status(500).json({ message: 'Failed to fetch post' });
     }
   });
+  
   //by userid to show user posts to user
   router.get('/user/:userId/posts', async (req, res) => {
     const { userId } = req.params;
@@ -234,7 +237,11 @@ router.get('/posts/category/:category',verifier, async (req, res) => {
       await Comments.destroy({
         where: { postId: postId }
       });
-  
+      await PostLikes.destroy({
+        where:{
+          postId:postId
+        }
+      })
       // Delete the post
       await post.destroy();
   

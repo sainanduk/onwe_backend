@@ -22,10 +22,14 @@ router.get('/topclubs',async(req,res)=>{
 })
 router.get('/top-posts', async (req, res) => {
     const id = req.session.sub
-    console.log(id);
+    const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
+    const limit = parseInt(req.query.limit, 10) || 16; // Default to 16 items per page if not provided
+  
+    const offset = (page - 1) * limit; 
+    
     try {
         const Top_posts = await Posts.findAll({
-            attributes: ['id', 'title', 'media', 'description', 'likes', 'category', 'tags', 'userid'],
+            attributes: ['id', 'media', 'description', 'likes'],
             include: [
                 {
                     model: Users, 
@@ -40,20 +44,17 @@ router.get('/top-posts', async (req, res) => {
                 }
             ],
             order: [['likes', 'DESC']],
-            limit: 15
+            limit: limit,
+            offset:offset
         });
 
         const postsWithLikes = Top_posts.map(post => ({
             id: post.id,
-            title: post.title,
             description: post.description,
-            userid: post.userid,
             avatar: post.user ? post.user.avatar : null, 
             username: post.user ? post.user.username : null, 
             likes: post.likes,
-            tags: post.tags,
             media: post.media,
-            category: post.category,
             liked: post.postLikes.length > 0 
         }));
 

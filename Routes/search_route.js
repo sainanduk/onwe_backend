@@ -29,7 +29,7 @@ router.get('/explore/:tab/:search', async (req, res) => {
       where: {
         username: {
           [Op.iLike]: `${search}%`
-        }
+        },
       },
       attributes: ['id', 'username','avatar'] 
     });
@@ -65,25 +65,49 @@ router.get('/search/:user', async (req, res) => {
 });
 
 
-router.get('/search/:Hashtag', async (req, res) => {
-  const {Hashtag } = req.params;
-  try {
+router.get('/search/hashtag/:tag', async (req, res) => {
+  const { tag } = req.params;
 
-  
-    const users = await Posts.findAll({
+  const page = parseInt(req.query.page, 10) || 1; // Default to page 1 if not provided
+  const limit = parseInt(req.query.limit, 10) || 16; // Default to 16 items per page if not provided
+
+  const offset = (page - 1) * limit; // Calculate the offset for pagination
+console.log("hi hashtag");
+
+  try {
+    const posts = await Posts.findAll({
+      attributes: ['id', 'media', 'description', 'likes'], 
       where: {
         tags: {
-          [Op.iLike]: `${Hashtag}%`
+          [Op.iLike]: `%${tag}%` 
         }
       },
-      attributes: ['id', 'username','avatar'] 
+      include: [
+        {
+          model: Users,
+          as: 'user', 
+          attributes: ['avatar', 'username'], 
+        }
+      ],
+      limit:limit,
+      offset:offset
     });
 
-    return res.json(users);
+   
+    const formattedPosts = posts.map(post => ({
+      id: post.id,
+      media: post.media,
+      description: post.description,
+      likes: post.likes,
+      avatar: post.user ? post.user.avatar : null, 
+      username: post.user ? post.user.username : null, 
+    }));
+
+    
+    return res.json(formattedPosts); 
   } catch (error) {
-    console.error('Error searching users by username:', error);
-    res.status(500).json({ message: 'Failed to search users' });
+    console.error('Error searching posts by hashtag:', error);
+    res.status(500).json({ message: 'Failed to search posts by hashtag' });
   }
 });
-
 module.exports = router;

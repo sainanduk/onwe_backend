@@ -74,12 +74,12 @@ const mobileevents = require('./mobile/Routes/mobile_event_routes.js')
 // app.use(mobilesearch)
 // app.use(mobileevents)
 //web routes
+app.use(searchRoute);
 app.use(verifier,clubRoutes);
 app.use(authRoutes);
 app.use(magazineRoutes);
 app.use(EventRoutes)
 app.use(postsRoutes);
-app.use(searchRoute);
 app.use(verifier,ExploreRoutes)
 app.use(commentsRoutes);
 app.use(updateusers)
@@ -173,8 +173,8 @@ cron.schedule('0 * * * *', () => {
   deleteOldPosts();
 });
 
-const PORT =  process.env[2]|| process.env.PORT||3000;
-// const PORT=3005
+// const PORT =  process.env[2]|| process.env.PORT||3000;
+const PORT=3005
 app.listen(PORT, () => {
   console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });
