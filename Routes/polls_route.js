@@ -4,6 +4,7 @@ const  Polls  = require('../models/Polls');
 const PollOptions = require('../models/PollOptions');
 const verifier = require('../middlewares/verifier');
 const Votes = require('../models/Votes');
+const Users =require('../models/Users')
 const { json } = require('body-parser');
 // Create a new poll
 router.post('/polls', verifier,async (req, res) => {
@@ -42,7 +43,6 @@ router.post('/polls', verifier,async (req, res) => {
 
 
 // Get all polls with pagination, options, and check if the user has voted
-// Get all polls with pagination, options, and check if the user has voted
 router.get('/polls', verifier, async (req, res) => {
   const userId = req.session.sub; // Get userId from session
   const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
@@ -66,13 +66,19 @@ router.get('/polls', verifier, async (req, res) => {
               required: false
             }
           ]
+        },
+        {
+          model: Users, // Include the Users model to fetch user details
+          as: 'User', // Must match the alias in the Polls-Users association
+          attributes: ['username', 'avatar'], // Fetch only username and avatar
         }
       ],
       order: [['createdAt', 'DESC']]
     });
-
-    // Map polls to transform Sequelize objects into plain JSON
+    
+    // Map polls to transform Sequelize objects into plain JSON and check user votes
     const pollsWithVotes = polls.map(poll => {
+      // Flatten PollOptions and check if the user has voted on any option
       const userVoteOptions = poll.PollOptions.flatMap(option => 
         option.Votes.filter(vote => vote.userId === userId)
       );
@@ -80,7 +86,8 @@ router.get('/polls', verifier, async (req, res) => {
       return {
         id: poll.id,
         question: poll.question,
-        createdBy: poll.createdBy,
+        createdBy:  poll.User?.username || 'Unknown',
+        avatar: poll.User?.avatar || null,
         PollOptions: poll.PollOptions.map(option => ({
           id: option.id,
           optionText: option.optionText,
@@ -91,10 +98,12 @@ router.get('/polls', verifier, async (req, res) => {
       };
     });
 
-    res.json(pollsWithVotes);
+    res.status(200).json(
+     pollsWithVotes
+    );
   } catch (error) {
     console.error('Error fetching polls:', error);
-    res.status(500).json({ message: 'Failed to fetch polls' });
+    res.status(500).json({ success: false, message: 'Failed to fetch polls' });
   }
 });
 
@@ -138,7 +147,7 @@ router.post('/polls/:id/vote', async (req, res) => {
       userId,
     });
 
-    res.send('Vote counted');
+    res.status(201).send('Vote counted');
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');

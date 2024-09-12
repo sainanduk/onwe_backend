@@ -144,6 +144,10 @@ Votes.belongsTo(PollOptions, { foreignKey: 'pollOptionId', as: 'PollOption' });
 Polls.hasMany(PollOptions, { foreignKey: 'pollId', as: 'PollOptions' });
 PollOptions.belongsTo(Polls, { foreignKey: 'pollId', as: 'Poll' });
 
+Polls.belongsTo(Users, { foreignKey: 'createdBy', as: 'User' });
+Users.hasMany(Polls, { foreignKey: 'createdBy', as: 'polls' });
+
+
 
 
 
