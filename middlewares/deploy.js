@@ -27,15 +27,25 @@ router.post('/deploy', (req, res) => {
     console.log(`Pull output: ${stdout}`);
     console.error(`Pull errors: ${stderr}`);
 
-    // Restart the server using PM2
-    exec('pm2 restart all', (err, stdout, stderr) => {
+    // Install npm dependencies
+    exec(`cd ${repoPath} && npm install`, (err, stdout, stderr) => {
       if (err) {
-        console.error(`Error restarting server: ${err}`);
-        return res.status(500).send('Failed to restart server');
+        console.error(`Error installing npm dependencies: ${err}`);
+        return res.status(500).send('Failed to install npm dependencies');
       }
-      console.log(`Restart output: ${stdout}`);
-      console.error(`Restart errors: ${stderr}`);
-      res.status(200).send('Deployment successful');
+      console.log(`NPM install output: ${stdout}`);
+      console.error(`NPM install errors: ${stderr}`);
+
+      // Restart the server using PM2
+      exec('pm2 restart all', (err, stdout, stderr) => {
+        if (err) {
+          console.error(`Error restarting server: ${err}`);
+          return res.status(500).send('Failed to restart server');
+        }
+        console.log(`Restart output: ${stdout}`);
+        console.error(`Restart errors: ${stderr}`);
+        res.status(200).send('Deployment successful');
+      });
     });
   });
 });
