@@ -29,7 +29,7 @@ const verifier = require('./middlewares/verifier.js')
 const deleteOldPosts =require('./middlewares/deletepostsinterval.js')
 const trendingClubs = require('./middlewares/trending.js')
 const pastevents =require('./middlewares/pastevents.js')
-
+const deploy =require('./middlewares/deploy.js')
 
 //routes
 const EventRoutes =require('./Routes/event_routes.js')
@@ -76,6 +76,10 @@ const mobileevents = require('./mobile/Routes/mobile_event_routes.js')
 // app.use(mobilemagazines)
 // app.use(mobilesearch)
 // app.use(mobileevents)
+
+//deploy-CI/CD
+app.use(deploy)
+
 //web routes
 app.use(trending)
 app.use(postsRoutes);
@@ -192,6 +196,8 @@ cron.schedule('0 * * * *', () => {
   console.log('Running scheduled job to delete past events');
   pastevents()
 });
+
+
 // const PORT =  process.env[2]|| process.env.PORT||3000;
 const PORT=3005
 app.listen(PORT, () => {
