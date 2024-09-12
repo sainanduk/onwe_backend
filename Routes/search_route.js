@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const Users = require('../models/Users');
 const Posts =require('../models/Posts')
 const {sequelize} = require('../Config/database')
 const userfollowers =require('../models/userfollowers')
 const Clubs =require('../models/Clubs')
-const verifier =require('../middlewares/verifier')
+const verifier =require('../middlewares/verifier');
+const { post } = require('./Comments_route');
 // Route to search users by username
 router.get('/explore/:tab/:search', async (req, res) => {
   const { tab,search } = req.params;
@@ -105,6 +106,43 @@ console.log("hi hashtag");
 
     
     return res.json(formattedPosts); 
+  } catch (error) {
+    console.error('Error searching posts by hashtag:', error);
+    res.status(500).json({ message: 'Failed to search posts by hashtag' });
+  }
+});
+
+
+router.get('/search/hashtagcount/:tag', async (req, res) => {
+  const { tag } = req.params;
+  const formattedTag = `#${tag}`; // Prefix with '#' to match hashtags
+
+  try {
+    // Retrieve all posts containing the hashtag pattern
+    const posts = await Posts.findAll({
+      attributes: ['tags'],
+      where: {
+        tags: {
+          [Op.iLike]: `%${formattedTag}%` // Search for the tag within the tags string
+        }
+      }
+    });
+
+    // Extract hashtags and count occurrences that match the pattern
+    const hashtagCounts = {};
+    posts.forEach(post => {
+      const tags = post.tags.match(/#[\w]+/g) || []; // Extract all hashtags
+      tags.forEach(tag => {
+        if (tag.toLowerCase().startsWith(formattedTag.toLowerCase())) { // Check for partial match
+          hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
+        }
+      });
+    });
+
+    // Convert counts to desired format
+    const result = Object.entries(hashtagCounts).map(([tag, count]) => ({ tag, count }));
+
+    return res.json(result); 
   } catch (error) {
     console.error('Error searching posts by hashtag:', error);
     res.status(500).json({ message: 'Failed to search posts by hashtag' });

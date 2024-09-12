@@ -26,8 +26,10 @@ const PollOptions = sequelize.define('poll_options', {
   },
 }, {
   tableName: 'poll_options',
-  timestamps: false, // Add this if timestamps are not needed
+  timestamps: false,
 });
+
+// Define associations
 
 
 module.exports = PollOptions;

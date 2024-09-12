@@ -6,7 +6,7 @@ const verifier = require('../middlewares/verifier');
 
 router.post('/checkfollow', async (req, res) => {
   const { username, followUsername } = req.body;
-
+  
   
   try {
 

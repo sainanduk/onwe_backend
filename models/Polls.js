@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../Config/database');
+const PollOptions = require('./PollOptions');
 
 const Polls = sequelize.define('polls', {
   id: {
@@ -20,5 +21,8 @@ const Polls = sequelize.define('polls', {
     defaultValue: DataTypes.NOW,
   },
 });
+
+// Define associations
+
 
 module.exports = Polls;

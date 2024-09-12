@@ -3,7 +3,8 @@ const router = express.Router();
 const  Polls  = require('../models/Polls');
 const PollOptions = require('../models/PollOptions');
 const verifier = require('../middlewares/verifier');
-const Votes = require('../models/Votes')
+const Votes = require('../models/Votes');
+const { json } = require('body-parser');
 // Create a new poll
 router.post('/polls', verifier,async (req, res) => {
   const { question, options } = req.body;
@@ -13,10 +14,7 @@ router.post('/polls', verifier,async (req, res) => {
     return res.status(400).send('Missing required fields');
   }
 
-  try {
-    console.log("hi");
-    console.log(question,options);
-    
+  try {  
     // Create the poll
     const poll = await Polls.create({
       question,
@@ -52,20 +50,22 @@ router.get('/polls', verifier, async (req, res) => {
   const offset = (page - 1) * limit;
 
   try {
-    let polls = await Polls.findAll({
+    const polls = await Polls.findAll({
       limit: limit,
       offset: offset,
       include: [
         {
           model: PollOptions,
-          as: 'Options',  // Specify the alias used in the association
+          as: 'PollOptions',  // Must match the alias defined in the association
           attributes: ['id', 'optionText', 'votes'],
-        },
-        {
-          model: Votes,
-          as: 'userVotes', // Ensure this alias is correctly defined in your models
-          where: { userId: userId },
-          required: false
+          include: [
+            {
+              model: Votes,
+              as: 'Votes', // Must match the alias defined in the association
+              where: { userId: userId },
+              required: false
+            }
+          ]
         }
       ],
       order: [['createdAt', 'DESC']]
@@ -73,18 +73,21 @@ router.get('/polls', verifier, async (req, res) => {
 
     // Map polls to transform Sequelize objects into plain JSON
     const pollsWithVotes = polls.map(poll => {
-      const userVote = poll.userVotes.length > 0; // Check if user has voted
+      const userVoteOptions = poll.PollOptions.flatMap(option => 
+        option.Votes.filter(vote => vote.userId === userId)
+      );
 
       return {
         id: poll.id,
         question: poll.question,
         createdBy: poll.createdBy,
-        PollOptions: poll.Options.map(option => ({
+        PollOptions: poll.PollOptions.map(option => ({
           id: option.id,
           optionText: option.optionText,
-          votes: userVote ? option.votes : null, // Show votes only if user has voted
+          votes: option.votes,
+          userHasVoted: userVoteOptions.some(vote => vote.pollOptionId === option.id)
         })),
-        userHasVoted: userVote // Flag to indicate if the user has voted
+        userHasVoted: userVoteOptions.length > 0
       };
     });
 
@@ -97,16 +100,17 @@ router.get('/polls', verifier, async (req, res) => {
 
 
 
-// Vote for a poll option
 router.post('/polls/:id/vote', async (req, res) => {
   const pollId = req.params.id;
   const { optionId } = req.body;
+  const userId = req.session.sub; // Get userId from session (or request, depending on your setup)
 
   if (!optionId) {
     return res.status(400).send('Missing required fields');
   }
 
   try {
+    // Check if the poll option exists
     const pollOption = await PollOptions.findOne({
       where: { id: optionId, pollId },
     });
@@ -115,8 +119,24 @@ router.post('/polls/:id/vote', async (req, res) => {
       return res.status(404).send('Option not found');
     }
 
+    // Check if the user has already voted for this option
+    const existingVote = await Votes.findOne({
+      where: { pollOptionId: optionId, userId },
+    });
+
+    if (existingVote) {
+      return res.status(400).send('User has already voted for this option');
+    }
+
+    // Increment the votes count
     pollOption.votes += 1;
     await pollOption.save();
+
+    // Record the user's vote
+    await Votes.create({
+      pollOptionId: optionId,
+      userId,
+    });
 
     res.send('Vote counted');
   } catch (error) {
@@ -124,5 +144,6 @@ router.post('/polls/:id/vote', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 module.exports = router;

@@ -14,16 +14,14 @@ const uploadimages = createMulterUpload();
 
 router.post('/user/info', verifier, async (req, res) => {
   const id = req.session.sub;
-  console.log("working user info");
 
   try {
-    const userdetails = await Users.findOne({where:{id:id}});
-    const username=userdetails.username
-      const userPromise = Users.findByPk(id, {
+   
+      const user = await Users.findByPk(id, {
           attributes: ['username', 'avatar', 'email', 'fullname', 'bio', 'links']
       });
 
-      const postsPromise = Posts.findAll({
+      const posts = await Posts.findAll({
           where: { userid: id, clubid: null },
           include: [
               {
@@ -40,25 +38,6 @@ router.post('/user/info', verifier, async (req, res) => {
           ],
           order: [['createdAt', 'DESC']]
       });
-
-      
-      const followingCountPromise = userfollowers.count({
-          where: { follower: username }
-      });
-
-      
-      const followersCountPromise = userfollowers.count({
-          where: { following: username }
-      });
-
-      
-      const [user, posts, followersCount, followingCount] = await Promise.all([
-          userPromise,
-          postsPromise,
-          followersCountPromise,
-          followingCountPromise
-      ]);
-
       
       const postsWithLikes = posts.map(post => ({
           id: post.id,
@@ -81,9 +60,7 @@ router.post('/user/info', verifier, async (req, res) => {
       
       const response = {
           user: user.toJSON(),
-          posts:postsWithLikes,
-          followersCount,
-          followingCount 
+          posts:postsWithLikes
       };
 
       res.status(200).json(response);
@@ -152,9 +129,11 @@ router.get('/user/:username',verifier, async (req, res) => {
 
 router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) => {
     const userId  = req.session.sub;
+    const {isavatar}=req.query
     const { fullname, bio, socials, department, password, links } = req.body;
     console.log("work");
-  
+    console.log(isavatar);
+    
     try {
      
       let user = await Users.findByPk(userId);
@@ -168,8 +147,9 @@ router.patch('/user/edit',verifier,uploadimages,processimages, async (req, res) 
       user.department = department || user.department;
       user.links = Array.isArray(links) ? links : user.links;
       user.updatedAt = new Date();
-      console.log(req.mediaData)
-      if(req.mediaData.length==0){
+      console.log(isavatar);
+
+      if(req.mediaData.length==0 && !isavatar){
         user.avatar=""
       }
       else{

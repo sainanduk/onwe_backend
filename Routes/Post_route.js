@@ -195,7 +195,7 @@ router.get('/posts/:postId', verifier, async (req, res) => {
   router.post('/posts',verifier,uploadimages, processimages, async (req, res) => {
     const { title, description,category, tags, clubid } = req.body;
     const userid = req.session.sub
-  
+    
     try {
       // Create new post
       const newPost = await Posts.create({

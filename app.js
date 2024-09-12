@@ -27,6 +27,8 @@ const pollOption = require('./models/PollOptions.js')
 //middleware
 const verifier = require('./middlewares/verifier.js')
 const deleteOldPosts =require('./middlewares/deletepostsinterval.js')
+const trendingClubs = require('./middlewares/trending.js')
+const pastevents =require('./middlewares/pastevents.js')
 
 
 //routes
@@ -44,6 +46,7 @@ const searchRoute = require('./Routes/search_route.js')
 const postsRoutes = require('./Routes/Post_route.js'); 
 const commentsRoutes = require('./Routes/Comments_route.js');
 const usernameRoutes = require('./Routes/username_route.js');
+const trending =require('./Routes/trending_route.js')
 
 
 
@@ -74,12 +77,13 @@ const mobileevents = require('./mobile/Routes/mobile_event_routes.js')
 // app.use(mobilesearch)
 // app.use(mobileevents)
 //web routes
+app.use(trending)
+app.use(postsRoutes);
 app.use(searchRoute);
 app.use(verifier,clubRoutes);
 app.use(authRoutes);
 app.use(magazineRoutes);
 app.use(EventRoutes)
-app.use(postsRoutes);
 app.use(verifier,ExploreRoutes)
 app.use(commentsRoutes);
 app.use(updateusers)
@@ -104,9 +108,7 @@ Posts.hasMany(PostLikes, { foreignKey: 'postId', as: 'postLikes' });
 Users.hasMany(Comments, { foreignKey: 'userId', as: 'userComments' });
 Users.hasMany(Clubs, { foreignKey: 'admin', as: 'adminClubs' });
 Users.hasMany(Posts, { as: 'posts', foreignKey: 'userid' });
-// Users.hasMany(UserFollowers, { foreignKey: 'followers', as: 'followers' });
-//Users.hasMany(UserFollowers, { foreignKey: 'following', as: 'following' });
-// Associate Users with UserFollowers where the user is the one being followed
+
 Users.hasMany(UserFollowers, { 
   foreignKey: 'following', 
   sourceKey: 'username',  
@@ -136,12 +138,14 @@ ClubStatus.belongsTo(Users, { foreignKey: 'userId' });
 
 
 
-Polls.hasMany(PollOptions, { foreignKey: 'pollId', as: 'PollOptions' }); 
-Polls.hasMany(Votes, { foreignKey: 'pollId', as: 'PollVotes' });
+PollOptions.hasMany(Votes, { foreignKey: 'pollOptionId', as: 'Votes' });
+Votes.belongsTo(PollOptions, { foreignKey: 'pollOptionId', as: 'PollOption' });
 
-
-
+Polls.hasMany(PollOptions, { foreignKey: 'pollId', as: 'PollOptions' });
 PollOptions.belongsTo(Polls, { foreignKey: 'pollId', as: 'Poll' });
+
+
+
 
 
 Comments.belongsTo(Posts, { foreignKey: 'postId' });
@@ -149,7 +153,7 @@ Comments.belongsTo(Users, { foreignKey: 'userId' });
 
 Magazines.belongsTo(Admins, { foreignKey: 'owner' });
 
-Votes.belongsTo(PollOptions, { foreignKey: 'pollOptionId', as: 'Option' });
+
 
 
 const initializeDatabase = async () => {
@@ -173,6 +177,17 @@ cron.schedule('0 * * * *', () => {
   deleteOldPosts();
 });
 
+cron.schedule('0 * * * *', () => {
+  console.log('Running scheduled job to trending');
+  trendingClubs();
+  
+  
+});
+
+cron.schedule('0 * * * *', () => {
+  console.log('Running scheduled job to delete past events');
+  pastevents()
+});
 // const PORT =  process.env[2]|| process.env.PORT||3000;
 const PORT=3005
 app.listen(PORT, () => {

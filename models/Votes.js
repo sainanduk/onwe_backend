@@ -1,7 +1,8 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../Config/database'); // Adjust the path to your Sequelize instance
+const { sequelize } = require('../Config/database');
 const PollOptions = require('./PollOptions');
-const Users =require('./Users')
+const Users = require('./Users');
+
 const Votes = sequelize.define('votes', {
   id: {
     type: DataTypes.INTEGER,
@@ -11,7 +12,7 @@ const Votes = sequelize.define('votes', {
   pollOptionId: {
     type: DataTypes.INTEGER,
     references: {
-      model: PollOptions, // Reference the PollOptions model
+      model: PollOptions,
       key: 'id',
     },
     allowNull: false,
@@ -19,7 +20,7 @@ const Votes = sequelize.define('votes', {
   userId: {
     type: DataTypes.STRING,
     references: {
-      model: Users, 
+      model: Users,
       key: 'id',
     },
     allowNull: false,
@@ -28,6 +29,8 @@ const Votes = sequelize.define('votes', {
   tableName: 'votes',
   timestamps: false,
 });
+
+// Define associations
 
 
 module.exports = Votes;
