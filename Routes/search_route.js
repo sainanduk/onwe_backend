@@ -8,22 +8,42 @@ const userfollowers =require('../models/userfollowers')
 const Clubs =require('../models/Clubs')
 const verifier =require('../middlewares/verifier');
 const { post } = require('./Comments_route');
+const ClubStatus = require('../models/clubstatuses');
 // Route to search users by username
-router.get('/explore/:tab/:search', async (req, res) => {
-  const { tab,search } = req.params;
-  try {
-  if(tab==='clubs'){
-    const clubs = await Clubs.findAll({
-      where: {
-        clubName: {
-          [Op.iLike]: `${search}%`, 
-        },
-      },
-      attributes:['clubName','coverImage']
-    });
+router.get('/explore/:tab/:search', verifier,async (req, res) => {
+  const { tab, search } = req.params;
+  const userid = req.session.sub; // Get userId from session or request
 
-    return res.status(200).json(clubs);
-  }
+  try {
+    if (tab === 'clubs') {
+      // Fetch clubs based on the search term
+      const clubs = await Clubs.findAll({
+        where: {
+          clubName: {
+            [Op.iLike]: `${search}%`,
+          },
+        },
+        attributes: ['clubId', 'clubName', 'coverImage'], // Include id to use for the second query
+      });
+
+      // Fetch club statuses for the user
+      const userClubStatuses = await ClubStatus.findAll({
+        where: { userId:userid },
+        attributes: ['clubId'],
+      });
+
+      // Create a Set of clubIds where the user is a member
+      const userClubIds = new Set(userClubStatuses.map(status => status.clubId));
+
+      // Map clubs to include membership status
+      const response = clubs.map(club => ({
+        clubName: club.clubName,
+        coverImage: club.coverImage,
+        isUserMember: userClubIds.has(club.clubId),
+      }));
+
+      return res.status(200).json(response);
+    }
   else{
   
     const users = await Users.findAll({

@@ -210,6 +210,7 @@ router.get('/posts/:postId', verifier, async (req, res) => {
         createdAt: new Date(),
         updatedAt: new Date()
       });
+  console.log("VIDEO POSTED SUCESSFULLY");
   
       res.status(201).json({ message: 'Post created successfully' });
     } catch (error) {

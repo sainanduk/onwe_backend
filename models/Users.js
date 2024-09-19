@@ -2,7 +2,11 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../Config/database');
 
 const Users = sequelize.define('users', {
-  id: { type: DataTypes.STRING, primaryKey: true },
+  id: {
+    type: DataTypes.UUID, // Use UUID for auto-generated string
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4, // Automatically generates a UUIDv4
+  },
   username: { type: DataTypes.STRING, unique: true },
   email: DataTypes.STRING,
   fullname: DataTypes.STRING,

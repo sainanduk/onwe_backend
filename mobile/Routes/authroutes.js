@@ -124,58 +124,60 @@ router.post("/Adminsignin", async (req, res) => {
 //   res.status(400).send("Unhandled event type");
 // });
 
-router.post("/webhook", async (req, res) => {
+// router.post("/webhook", async (req, res) => {
 
-  const event = req.body;
-  const user = event.data;
+//   const event = req.body;
+//   const user = event.data;
 
+// console.log("USER CREATED");
 
-  if (event.type === "user.created") {
-    const userId = user.id;
-    const username = user.username;
-    const email =
-      user.email_addresses && user.email_addresses.length > 0
-        ? user.email_addresses[0].email_address
-        : "No email provided";
+//   if (event.type === "user.created") {
+//     const userId = user.id;
+//     const username = user.username;
+//     const email =
+//       user.email_addresses && user.email_addresses.length > 0
+//         ? user.email_addresses[0].email_address
+//         : "No email provided";
 
-    try {
-      // Check if the user already exists by ID
-      const exist = await Users.findOne({
-        where: { username: username, id: userId },
-      });
-      console.log(
-        "User existence check result:",
-        exist ? "User exists" : "User does not exist"
-      );
+//     try {
+//       // Check if the user already exists by ID
+//       const exist = await Users.findOne({
+//         where: { username: username, id: userId },
+//       });
+//       console.log(
+//         "User existence check result:",
+//         exist ? "User exists" : "User does not exist"
+//       );
 
-      if (exist) {
-        console.log(`User with ID ${userId} already exists.`);
-        return res.json({ message: "User already exists" });
+//       if (exist) {
+//         console.log(`User with ID ${userId} already exists.`);
+//         return res.json({ message: "User already exists" });
         
-      }
-      else{
-      const passkey = generatePasskey(16);
-      const hashedPassword = await bcrypt.hash(passkey, 10);
-      await Users.create({
-        id: userId,
-        username: username,
-        email: email,
-        password:hashedPassword
-      });
-      console.log(passkey);
+//       }
+//       else{
+//       const passkey = generatePasskey(16);
+//       const hashedPassword = await bcrypt.hash(passkey, 10);
+//       await Users.create({
+//         id: userId,
+//         username: username,
+//         email: email,
+//         password:hashedPassword
+//       });
+//       console.log(passkey);
+//       console.log("USER CREATED INTO DB");
+      
+//       //sendEmail(passkey,email)
+//         console.log(`User with ID ${userId} created successfully.`);
+//         return res.status(201).json({ message: "User created" });
+//       }
+//     } catch (error) {
+//       console.error(`Error creating user with ID ${userId}:`, error);
+//       return res.status(500).json({ error: "Internal Server Error" });
+//     }
+//   }
 
-      //sendEmail(passkey,email)
-        console.log(`User with ID ${userId} created successfully.`);
-        return res.status(201).json({ message: "User created" });
-      }
-    } catch (error) {
-      console.error(`Error creating user with ID ${userId}:`, error);
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
-  }
-
-  console.log(`Unhandled event type: ${event.type}`);
-  res.status(400).send("Unhandled event type");
-});
+//   console.log(`Unhandled event type: ${event.type}`);
+//   res.status(400).send("Unhandled event type");
+// });
 
 module.exports = router;

@@ -7,7 +7,7 @@ const Artical = sequelize.define('Artical', {
     primaryKey: true,
     autoIncrement: true,
   },
-  media: DataTypes.ARRAY(DataTypes.TEXT),
+  media: DataTypes.TEXT,
   coverphoto:DataTypes.TEXT,
   owner: DataTypes.STRING,
   title: DataTypes.TEXT,

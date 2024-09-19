@@ -117,7 +117,7 @@ router.get('/user/:username',verifier, async (req, res) => {
         user: user.toJSON(),
         posts:postsWithLikes
     };
-    console.log("hi this nandu");
+    // console.log("hi this nandu");
     
     res.status(200).json(response);
 

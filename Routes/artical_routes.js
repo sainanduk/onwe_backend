@@ -7,20 +7,48 @@ const uploadimages = createMulterUpload(); // Initialize multer middleware
 const verifier = require('../middlewares/verifier');
 const Users = require('../models/Users');
 
+const { includes } = require('../mobile/middleware/mobileverifier');
+const { User } = require('@clerk/clerk-sdk-node');
+const { Op } = require('sequelize');
 
 
 
 
 
-router.get('/artical',verifier,async (req, res) => {
-  // const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-  // const limit = parseInt(req.query.limit) || 7; // Default to 7 posts if not provided
-  // const offset = (page - 1) * limit;
+
+router.get('/artical', async (req, res) => {
   try {
-    const Arti = await Artical.findAll({
-      order:[['updatedAt','DESC']]
+    // Step 1: Fetch articles
+    let articles = await Artical.findAll({
+      order: [['updatedAt', 'DESC']]
     });
-    res.status(200).json(Arti);
+
+    // Step 2: Extract unique usernames from articles
+    const usernames = [...new Set(articles.map(article => article.owner))];
+
+    // Step 3: Fetch user details based on usernames
+    const users = await Users.findAll({
+      where: {
+        username: {
+          [Op.in]: usernames
+        }
+      },
+      attributes: ['username', 'avatar']
+    });
+
+    // Create a map for quick lookup
+    const userMap = users.reduce((map, user) => {
+      map[user.username] = user.avatar;
+      return map;
+    }, {});
+
+    // Step 4: Add user details to each article
+    articles = articles.map(article => ({
+      ...article.toJSON(), 
+      avatar: userMap[article.owner] 
+    }));
+
+    res.status(200).json(articles);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -53,31 +81,24 @@ router.post('/artical', verifier, uploadimages, processimages, async (req, res) 
   try {
     const { title, description, category } = req.body;
     const userid = req.session.sub;
-
+    
+    
     if (!userid) {
       return res.status(400).json({ error: 'User ID is missing from session' });
     }
 
     // Find the user
-    const user = await Users.findOne({
-      where: { id: userid },
-    });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const owner = user.username;
-
+    const owner = req.session.userName;
     // Create the article
     const artical = await Artical.create({
+      media: req.mediaData[1].base64String,
       owner,
       title,
       description,
-      category,
       likes: 0,
-      coverphoto: req.mediaData[0],
-      media: req.mediaData[1],
+      category,
+      coverphoto: req.mediaData[0].base64String,
       isPublished: true,
       createdAt: new Date(),
     });

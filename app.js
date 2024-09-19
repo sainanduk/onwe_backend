@@ -81,11 +81,11 @@ app.use(deploy)
 
 
 //web routes
+app.use(authRoutes);
 app.use(trending)
 app.use(postsRoutes);
 app.use(searchRoute);
 app.use(verifier,clubRoutes);
-app.use(authRoutes);
 app.use(magazineRoutes);
 app.use(EventRoutes)
 app.use(verifier,ExploreRoutes)
@@ -139,8 +139,17 @@ PostLikes.belongsTo(Users, { foreignKey: 'userId' });
 Clubs.hasMany(ClubStatus, { foreignKey: 'clubId' });
 ClubStatus.belongsTo(Clubs, { foreignKey: 'clubId' });
 ClubStatus.belongsTo(Users, { foreignKey: 'userId' });
+/*
 
+// Clubs model
+Clubs.hasMany(ClubStatus, { foreignKey: 'clubId', as: 'ClubStatuses' });
+ClubStatus.belongsTo(Clubs, { foreignKey: 'clubId', as: 'Club' });
 
+// ClubStatus model
+ClubStatus.belongsTo(Users, { foreignKey: 'userId', as: 'User' });
+Users.hasMany(ClubStatus, { foreignKey: 'userId', as: 'ClubStatuses' });
+
+*/
 
 PollOptions.hasMany(Votes, { foreignKey: 'pollOptionId', as: 'Votes' });
 Votes.belongsTo(PollOptions, { foreignKey: 'pollOptionId', as: 'PollOption' });
@@ -187,11 +196,11 @@ cron.schedule('0 * * * *', () => {
 
 cron.schedule('0 * * * *', () => {
   console.log('Running scheduled job to trending');
+  
+  
+  
   trendingClubs();
-  
-  
 });
-
 cron.schedule('0 * * * *', () => {
   console.log('Running scheduled job to delete past events');
   pastevents()

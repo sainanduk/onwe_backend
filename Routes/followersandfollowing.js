@@ -5,8 +5,10 @@ const verifier = require('../middlewares/verifier');
 
 
 router.post('/checkfollow', async (req, res) => {
-  const { username, followUsername } = req.body;
+  const {  followUsername } = req.body;
+  const username =req.session.userName
   
+
   
   try {
 
@@ -55,8 +57,9 @@ router.post('/checkfollow', async (req, res) => {
 
 // Route to follow a user
 router.post('/follow',verifier, async (req, res) => {
-  const { username, followUsername } = req.body;
-
+  const {  followUsername } = req.body;
+  const username=req.session.userName
+  console.log(followUsername, username)
   try {
     
     const followingUser = await userfollowers.findOne({ 
@@ -79,8 +82,8 @@ router.post('/follow',verifier, async (req, res) => {
 
 // Route to unfollow a user
 router.post('/unfollow',verifier, async (req, res) => {
-  const { username, unfollowUsername } = req.body;
-
+  const {  unfollowUsername } = req.body;
+  const username=req.session.userName
   try {
     // Delete records from UserFollowers table
     console.log("hi");

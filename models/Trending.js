@@ -23,11 +23,6 @@ const Trending = sequelize.define('trending', {
     type: DataTypes.INTEGER, 
     allowNull: false 
   },
-  // You can add more fields if necessary, such as rankings or scores
-}, {
-  tableName: 'trending', // Optional: specify the table name if it's not pluralized
-  timestamps: true, // Includes createdAt and updatedAt fields
-  updatedAt: 'updatedAt', // Customize timestamp field names if necessary
 });
 
 module.exports = Trending;
