@@ -9,13 +9,25 @@ const Users = require('../models/Users');
 const verifier = require('../middlewares/verifier');
 const uploadimages = createMulterUpload();
 const { Op } = require('sequelize');
+const Minio = require('minio');
 // Route to get all posts
+const minioClient = new Minio.Client({
+  endPoint: process.env.BUCKET_END_POINT,
+  useSSL: true,
+  accessKey: process.env.BUCKET_ACCESS_KEY,
+  secretKey: process.env.BUCKET_SECRET_KEY,
+});
+
+// Bucket name
+const bucketName = process.env.BUCKET_NAME;
+
 router.get('/posts',verifier, async (req, res) => {
   const userId = req.session.sub;
   const page = parseInt(req.query.page) || 1; 
   const limit = parseInt(req.query.limit) || 7; 
   const offset = (page - 1) * limit;
-
+  console.log("posts page checking requests");
+  
   try {
     let posts = await Posts.findAll({
       where: { clubid: null ,userid: {
@@ -195,7 +207,7 @@ router.get('/posts/:postId', verifier, async (req, res) => {
   router.post('/posts',verifier,uploadimages, processimages, async (req, res) => {
     const { title, description,category, tags, clubid } = req.body;
     const userid = req.session.sub
-    
+     
     try {
       // Create new post
       const newPost = await Posts.create({
@@ -243,6 +255,16 @@ router.get('/posts/:postId', verifier, async (req, res) => {
         }
       })
       // Delete the post
+      const filenames=[]
+      console.log(post.media);
+      
+      for (const media of post.media) {
+        let file = media.split('/').pop().split('?')[0];
+        filenames.push(file);
+      }
+      console.log(filenames);
+      
+      await minioClient.removeObjects(bucketName, filenames);
       await post.destroy();
   
       // Respond with success message

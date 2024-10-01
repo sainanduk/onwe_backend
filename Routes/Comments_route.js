@@ -16,6 +16,7 @@ router.get('/posts/:postId/comments', async (req, res) => {
           postId: postId,
           parentId: null
         },
+        order: [['createdAt', 'desc']],
         include: [
           {
             model: Users,
@@ -26,7 +27,7 @@ router.get('/posts/:postId/comments', async (req, res) => {
       
   
       if (comments.length === 0) {
-        return res.status(404).json({ message: 'No comments found for this post' });
+        return res.json([]);
       }
   
       res.json(comments);
@@ -78,8 +79,8 @@ router.get('/comments/:commentId', async (req, res) => {
 //     res.status(500).json({ message: 'Failed to fetch comments' });
 //   }
 // });
-router.post('/subcomments', async (req, res) => {
-  const { postId, parentId } = req.body;
+router.get('/subcomments/:postId/:parentId', async (req, res) => {
+  const { postId, parentId } = req.params;
 
   try {
     // Fetch all comments with the given postId and parentId
@@ -88,6 +89,7 @@ router.post('/subcomments', async (req, res) => {
         postId: postId,
         parentId: parentId
       },
+      order: [['createdAt', 'desc']],
       include: [
         {
           model: Users,
@@ -132,7 +134,10 @@ router.post('/comments', verifier ,async (req, res) => {
 router.delete('/comments/:commentId', verifier,async (req, res) => {
   const { commentId } = req.params;
   const userid =req.session.sub
-
+  console.log("userid",userid);
+  console.log("commentId",commentId);
+  
+  
   try {
     // Find the comment to delete
     const comment = await Comments.findByPk(commentId);

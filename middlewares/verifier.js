@@ -1,4 +1,4 @@
-const { clerkClient } = require("../Config/client");
+
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
@@ -28,9 +28,9 @@ const verifier = async (req, res, next) => {
   try {
     const token = req.headers['authorization']?.split(' ')[1];
     if(!token) return res.status(401).json({ message: "Unauthorized" });
-    jwt.verify(token, JWT_SECRET, (err, user) => {
+    jwt.verify(token, JWT_SECRET,(err, user) => {
       if (err) return res.status(403).json({ message: 'Invalid token' });
-      req.session={sub:user.id,userName:user.username}
+      req.session={sub:user.id,userName:user.username,EmailAddress:user.EmailAddress}
       next(); 
     });
 

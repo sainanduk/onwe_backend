@@ -14,7 +14,8 @@ const uploadimages = createMulterUpload();
 
 router.post('/user/info', verifier, async (req, res) => {
   const id = req.session.sub;
-
+    console.log("this is user info checking requests");
+    
   try {
    
       const user = await Users.findByPk(id, {
@@ -72,11 +73,12 @@ router.post('/user/info', verifier, async (req, res) => {
 });
 router.get('/user/:username',verifier, async (req, res) => {
   const {username}=req.params
-    
+  console.log("this is user name info checking requests");
+
   try {
       
     const user = await Users.findOne({where:{username:username}});
-
+    if(!user){ return res.status(404).json({ message: 'User not found' });}
     const posts = await Posts.findAll({
         where: { userid: user.id, clubid: null },
         include: [

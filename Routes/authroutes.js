@@ -7,75 +7,13 @@ const Users = require("../models/Users");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const sendVerificationEmail = require("../middlewares/sendVerificationEmail");
+const {sendVerificationEmail, sendPasswordResetEmail, sendResetSuccessEmail} = require("../middlewares/sendVerificationEmail");
 const secret = process.env.SECRET_KEY;
 
 const crypto = require('crypto');
 const auths  = require("../models/auth");
 const { Op } = require("sequelize");
-
-// router.post("/webhook", async (req, res) => {
-
-//   const event = req.body;
-//   const user = event.data;
-
-
-//   if (event.type === "user.created") {
-//     const userId = user.id;
-//     const username = user.username;
-//     console.log(user.username,"created sucessfully");
-    
-//     const email =
-//       user.email_addresses && user.email_addresses.length > 0
-//         ? user.email_addresses[0].email_address
-//         : "No email provided";
-
-//     try {
-//       // Check if the user already exists by ID
-//       const exist = await Users.findOne({
-//         where: { username: username, id: userId },
-//       });
-//       console.log(
-//         "User existence check result:",
-//         exist ? "User exists" : "User does not exist"
-//       );
-
-//       if (exist) {
-//         console.log(`User with ID ${userId} already exists.`);
-//         return res.json({ message: "User already exists" });
-        
-//       }
-//       else{
-//       const passkey = generatePasskey(16);
-//       const hashedPassword = await bcrypt.hash(passkey, 10);
-//       await Users.create({
-//         id: userId,
-//         username: username,
-//         email: email,
-//         password:hashedPassword
-//       });
-//       console.log(passkey);
-
-//       //sendEmail(passkey,email)
-//         console.log(`User with ID ${userId} created successfully.`);
-//         return res.status(201).json({ message: "User created" });
-//       }
-//     } catch (error) {
-//       console.error(`Error creating user with ID ${userId}:`, error);
-//       return res.status(500).json({ error: "Internal Server Error" });
-//     }
-//   }
-
-//   console.log(`Unhandled event type: ${event.type}`);
-//   res.status(400).send("Unhandled event type");
-// });
-
-
-
-// Sign-up route
-
-
-
+const auth = require("../models/auth");
 
 
 router.post("/Adminsignup", async (req, res) => {
@@ -150,13 +88,32 @@ router.post('/signup' , async (req, res) => {
     if (!email || !password || !name) {
       throw new error("All fields are required");
     }
-    const alreadyExists = await auths.findOne({ where: { email:email } });
-    if (alreadyExists) {
+    const user = await Users.findOne({ where: { email: email } });
+    if (user) {
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
     }
-
+    const alreadyExists = await auths.findOne({ where: { email:email } });
+    if (alreadyExists) {
+    if (alreadyExists.isVerified) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
+    }
+    else{
+      const verificationToken = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
+      alreadyExists.verificationToken = verificationToken;
+      alreadyExists.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; 
+      await alreadyExists.save();
+      sendVerificationEmail(email, verificationToken);
+      return res.status(200).json({
+        success: true,
+        message: "Verification code sent successfully",
+      });
+    }}
     const hashedPassword = await bcryptjs.hash(password, 12);
     const verificationToken = Math.floor(
       100000 + Math.random() * 900000
@@ -197,6 +154,7 @@ router.post('/verifyEmail', async (req, res) => {
         [Op.gt]: Date.now()
       }
     }});
+    console.log("authUser", authUser);
     
     if (!authUser) {
       return res.status(400).json({
@@ -208,12 +166,15 @@ router.post('/verifyEmail', async (req, res) => {
     authUser.isVerified = true;
     authUser.verificationToken = undefined;
     authUser.verificationTokenExpires = undefined;
-    console.log("authUser", authUser);
+    console.log("saved authUser");
+    
   
     
     await authUser.save();
-    await Users.findOne({where:{email:emailAddress}});
-    if(Users){
+    const user =await Users.findOne({where:{email:emailAddress}});
+    console.log("Users", user);
+    
+    if(user){
       return res.status(400).json({
         success: false,
         message: "User already exists",
@@ -225,7 +186,8 @@ router.post('/verifyEmail', async (req, res) => {
       password: authUser.password,
       createdAt: Date.now()
     })
-
+    console.log("user created");
+    
     // await sendWelcomeEmail(authUser.email, authUser.name);
 
     res.status(200).json({
@@ -239,10 +201,101 @@ router.post('/verifyEmail', async (req, res) => {
   }
 });
 
+
+// user forgot password
+router.post('/forgotPassword', async (req, res) => {
+  const { email } = req.body;
+  console.log(email);
+  
+  try {
+    const user = await auths.findOne({ where: { email } });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Generate OTP for password reset
+    const resetOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetTokenExpiresAt = Date.now() + 60 * 60 * 1000; // OTP valid for 1 hour
+
+    user.resetPasswordToken = resetOTP;
+    user.resetPasswordExpires = resetTokenExpiresAt;
+console.log(resetOTP);
+
+    await user.save();
+
+    // Send OTP instead of URL for resetting password
+    await sendPasswordResetEmail(user.email, resetOTP);
+
+    res.status(200).json({
+      success: true,
+      message: "OTP to reset your password has been sent to your email!",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/resetPassword', async (req, res) => {
+  try {
+    const { otp, password } = req.body; // OTP and new password from frontend
+
+    if (!otp || !password) {
+      return res.status(400).json({ success: false, message: "OTP and password are required" });
+    }
+
+    // Find user by OTP and ensure OTP is still valid (not expired)
+    const authUser = await auths.findOne({
+      where: {
+        resetPasswordToken: otp,
+        resetPasswordExpires: { [Op.gt]: Date.now() }, // OTP expiration check
+      },
+    });
+
+    if (!authUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcryptjs.hash(password, 12);
+    authUser.password = hashedPassword;
+
+    // Clear OTP and expiration after successful password reset
+    authUser.resetPasswordToken = null;
+    authUser.resetPasswordExpires = null;
+    await authUser.save();
+
+    // Update the password in the Users table if necessary
+    await Users.update(
+      { password: hashedPassword },
+      { where: { email: authUser.email } }
+    );
+
+    console.log("Password reset successfully");
+
+    // Send confirmation email
+    sendResetSuccessEmail(authUser.email);
+
+    res.status(200).json({
+      success: true,
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
 //  user login 
 router.post('/login',async (req, res) => {
   const { emailOrUsername, password } = req.body;
-
+  console.log("login", req.body);
+  
   try {
     if (!emailOrUsername || !password) {
       throw new Error("All fields are required");
@@ -288,8 +341,5 @@ router.post('/login',async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 });
-
-// user forgot password
-
 
 module.exports = router;

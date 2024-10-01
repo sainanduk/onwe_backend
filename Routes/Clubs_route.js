@@ -12,6 +12,7 @@
   const verifier=require('../middlewares/verifier');
   const PostLikes = require('../models/postLikes');
 const { all } = require("./Post_route");
+const Event = require('../models/Event');
 
 //create posts and announcements in club
   router.post('/clubs/posts', uploadImages, processimages, async (req, res) => {
@@ -126,7 +127,7 @@ router.get('/clubs/all', async (req, res) => {
       }
   
       // All checks passed
-      return res.status(200).send("OK");
+      return res.status(200).send(clubStatsInfo.isAdmin);
   
     } catch (error) {
       console.error("Error in /clubs/check/:clubname:", error); // Log the error for debugging
@@ -442,5 +443,28 @@ router.get('/clubs/all', async (req, res) => {
       res.status(500).json({ message: "Failed to make user an admin" });
     }
   });
+router.get('/clubs/events/:clubName', async (req, res) => {
+  const { clubName } = req.params;
+  console.log("this is with club events events");
+  console.log(clubName);
+  
+  
+  try{
 
+    const clubInfo = await Clubs.findOne({ where: { clubName: clubName } });
+    if(!clubInfo){
+      return res.status(404).json({message:`No clubs exists with the name ${clubName}`})
+    }
+    const clubId = clubInfo.clubId;
+    const events = await Event.findAll({
+      where: { clubId: clubId },
+      order: [['dateOfEvent', 'ASC']]
+    });
+    res.json(events);
+  }catch(error){
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+);
   module.exports = router;

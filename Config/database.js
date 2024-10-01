@@ -6,6 +6,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
   host: process.env.DB_HOST || 'localhost',
   port: process.env.LOCAL_DB_PORT || 5432,
   dialect: 'postgres',
+  logging: false,
   pool: {
     max: 10, // Maximum number of connection in pool
     min: 0,  // Minimum number of connection in pool

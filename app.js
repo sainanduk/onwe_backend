@@ -23,13 +23,14 @@ const PollOptions = require('./models/PollOptions.js');
 const Polls = require('./models/Polls.js');
 const Votes = require('./models/Votes.js')
 const pollOption = require('./models/PollOptions.js')
-
+const RemindEvent = require('./models/RemindEvents.js')
 //middleware
 const verifier = require('./middlewares/verifier.js')
 const deleteOldPosts =require('./middlewares/deletepostsinterval.js')
 const trendingClubs = require('./middlewares/trending.js')
 const pastevents =require('./middlewares/pastevents.js')
 const deploy = require('./middlewares/deploy.js')
+const rateLimiter = require('./middlewares/ratelimiter');
 
 //routes
 const EventRoutes =require('./Routes/event_routes.js')
@@ -55,6 +56,8 @@ const createevent =require('./Admin_Routes/event_routes.js')
 const createmagazine = require('./Admin_Routes/magazines_routes.js')
 
 //create club,create event,create magazine
+app.set('trust proxy', 1);
+app.use(rateLimiter);
 app.use(createclub)
 app.use(createevent)
 app.use(createmagazine)
@@ -123,13 +126,14 @@ Comments.belongsTo(Users, { foreignKey: 'userId' });
 
 Magazines.belongsTo(Admins, { foreignKey: 'owner' });
 
+RemindEvent.belongsTo(Event, { foreignKey: 'eventId' });
 
 const initializeDatabase = async () => {
   try {
-    await sequelize.authenticate({alter:true});
+    await sequelize.authenticate();
     console.log('Connection to the database has been established successfully.');
 
-    await sequelize.sync({alter:true}); 
+    await sequelize.sync(); 
     console.log('Database and tables have been synced successfully.');
   } catch (error) {
     console.error('Error initializing the database:', error);
@@ -151,7 +155,7 @@ cron.schedule('0 * * * *', () => {
 });
 //working
 // const PORT =  process.env[2]|| process.env.PORT||3000;
-// const PORT=3005
+const PORT=3005
 app.listen(PORT, () => {
   console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });

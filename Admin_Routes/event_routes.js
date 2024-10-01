@@ -4,29 +4,43 @@ const Event = require('../models/Event');
 const isAdmin = require('../middlewares/adminCheck');
 const createMulterUpload = require('../middlewares/uploadimages');
 const processimages = require('../middlewares/processimages');
+const Admins = require('../models/Admins');
 const uploadimages = createMulterUpload();
-
+const Clubs = require('../models/Clubs');
 
 
 
 router.post('/Admin/events', uploadimages, processimages, async (req, res) => {
-    const { title, subtitle, dateOfEvent, description, category,time} = req.body;
-    //const userid = req.session.sub
-  
+    const { title, subtitle,clubName, dateOfEvent, description, category,time} = req.body;
+    let club = {};
+    
+    
+    
+    if(clubName){
+      club = await Clubs.findOne({ where: { clubName: clubName } });
+      if (!club) {
+        return res.status(404).json({ message: 'Club not found' });
+      }
+    }
+    
+    
+    
     try {
       // Create new post
       const newEvent = await Event.create({
         title,
-        subtitle,
+        link:subtitle,
         dateOfEvent,
         description,
         category,
+        clubId: club.clubId?club.clubId : null,
         time,
         media: req.mediaData.map(img => img.base64String),
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-  
+      
+      
       res.status(201).json({ message: 'Event created successfully',event: newEvent});
     } catch (error) {
       console.error('Error creating post:', error);

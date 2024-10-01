@@ -93,7 +93,7 @@ router.get('/search/username/:user', async (req, res) => {
     const users = await Users.findAll({
       where: {
         username: {
-          [Op.iLike]: `${user}%`
+          [Op.iLike]: `${user}`
         }
       },
       attributes: ['username'] 

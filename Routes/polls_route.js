@@ -68,6 +68,78 @@ router.get('/polls', verifier, async (req, res) => {
           ]
         },
         {
+          model: Users, 
+          as: 'User', 
+          attributes: ['username', 'avatar'], // Fetch only username and avatar
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    
+    
+    const pollsWithVotes = polls.map(poll => {
+      
+      const userVoteOptions = poll.PollOptions.flatMap(option => 
+        option.Votes.filter(vote => vote.userId === userId)
+      );
+
+      return {
+        id: poll.id,
+        question: poll.question,
+        createdBy:  poll.User?.username || 'Unknown',
+        avatar: poll.User?.avatar || null,
+        PollOptions: poll.PollOptions.map(option => ({
+          id: option.id,
+          optionText: option.optionText,
+          votes: option.votes,
+          userHasVoted: userVoteOptions.some(vote => vote.pollOptionId === option.id)
+        })),
+        userHasVoted: userVoteOptions.length > 0
+      };
+    });
+
+    res.status(200).json(
+     pollsWithVotes
+    );
+  } catch (error) {
+    console.error('Error fetching polls:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch polls' });
+  }
+});
+
+router.get('/polls/:username', verifier, async (req, res) => {
+  console.log("polls by username", req.params.username);
+  
+  const user = await Users.findOne({where:{username:req.params.username}});
+  console.log("user",user);
+  
+  if (!user) {
+    return res.status(400).send('User not found');
+  }
+  const userId = user.id;
+  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+  const limit = parseInt(req.query.limit) || 7; // Default to 7 polls if not provided
+  const offset = (page - 1) * limit;
+  try {
+    const polls = await Polls.findAll({
+      where:{createdBy:userId},
+      limit: limit,
+      offset: offset,
+      include: [
+        {
+          model: PollOptions,
+          as: 'PollOptions',  // Must match the alias defined in the association
+          attributes: ['id', 'optionText', 'votes'],
+          include: [
+            {
+              model: Votes,
+              as: 'Votes', // Must match the alias defined in the association
+              where: { userId: userId },
+              required: false
+            }
+          ]
+        },
+        {
           model: Users, // Include the Users model to fetch user details
           as: 'User', // Must match the alias in the Polls-Users association
           attributes: ['username', 'avatar'], // Fetch only username and avatar
@@ -256,6 +328,39 @@ router.get('/mypolls', verifier, async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch polls' });
   }
 });
+
+// Delete a poll
+router.delete('/polls/:id', verifier, async (req, res) => {
+  console.log("delete poll",req.params.id);
+  
+  const pollId = req.params.id;
+  const userId = req.session.sub; 
+
+  try {
+    const poll = await Polls.findOne({ where: { id: pollId } });
+
+    const pollOptions = await PollOptions.findAll({ where: { pollId } });
+
+    const votes = await Votes.findAll({
+      where: { pollOptionId: pollOptions.map(option => option.id) }
+    });
+
+    // Check if the poll exists
+    if (!poll) {
+      return res.status(404).send('Poll not found');
+    }
+    pollOptions.forEach(async option => await option.destroy());
+    votes.forEach(async vote => await vote.destroy());
+    await poll.destroy();
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+}
+);
+
+
+
 
 
 module.exports = router;
