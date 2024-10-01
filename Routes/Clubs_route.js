@@ -11,6 +11,7 @@
   const ClubStatuses = require("../models/clubstatuses");
   const verifier=require('../middlewares/verifier');
   const PostLikes = require('../models/postLikes');
+const { all } = require("./Post_route");
 
 //create posts and announcements in club
   router.post('/clubs/posts', uploadImages, processimages, async (req, res) => {
@@ -78,7 +79,21 @@
       res.status(500).json({ error: 'An error occurred while fetching user clubs' });
     }
   });
-
+router.get('/clubs/all', async (req, res) => {
+  console.log("this is with all clubs");
+  
+  try {
+    const allClubs = await Clubs.findAll({
+      attributes: ['clubId', 'clubName', 'coverImage','slogan'],
+      order: [['clubName', 'ASC']]
+    });
+//  allClubs
+    res.json(allClubs);
+  } catch (error) {
+    console.error('Error fetching all clubs:', error);
+    res.status(500).json({ error: 'An error occurred while fetching all clubs' });
+  }
+})
 
 
   router.get('/clubs/check/:clubname', async (req, res) => {
@@ -142,11 +157,6 @@
         return res.status(404).json({ message: "Club not found" });
       }
       
-
-      // const clubId = clubInfo.clubId; // Retrieve the clubId
-      // const userId = req.session.sub; // Assuming you have a way to get the userId from the verifier middleware
-
-      // Check if the user is a member of the club
       const isUserPresent = await ClubStatuses.findOne({
         where: { userId: userId, clubId: clubId },
         attributes: ['clubId']
@@ -180,6 +190,8 @@
         order: [['createdAt', 'DESC']]
       });
       console.log("g log 6");
+      console.log(req.session.userName);
+      
 
       // Transform posts into plain JSON
       const postsWithLikes = posts.map(post => ({
@@ -276,71 +288,6 @@
       return res.status(500).json({ message: "Internal Server Error" });
     }
   });
-  
-
-  // Route to make an announcement
-  // router.post("/clubs/announcement",
-  //   uploadImages,
-  //   processimages,
-  //   async (req, res) => {
-  //     const { userId, clubId, message, title, tags } = req.body;
-
-  //     try {
-  //       const club = await Clubs.findByPk(clubId);
-
-  //       if (!club) {
-  //         return res.status(404).json({ message: "Club not found" });
-  //       }
-
-  //       // Create a new post for the announcement
-  //       const newPost = await Posts.create({
-  //         title: title,
-  //         description: message,
-  //         likes: 0,
-  //         userid: userId,
-  //         media: req.mediaData.map((img) => img.base64String),
-  //         category: "announcement",
-  //         tags: tags,
-  //         clubid: clubId,
-  //         createdAt: new Date(),
-  //         updatedAt: new Date(),
-  //       });
-
-  //       res
-  //         .status(201)
-  //         .json({ message: "Announcement made successfully", post: newPost });
-  //     } catch (error) {
-  //       console.error("Error making announcement:", error);
-  //       res.status(500).json({ message: "Failed to make announcement" });
-  //     }
-  //   }
-  // );
-
-  // Route to get all announcements for a specific club
-  // router.get("/clubs/:clubName/announcements", verifier,async (req, res) => {
-  //   const { clubName } = req.params;
-
-  //   try {
-  //     const announcements = await Posts.findAll({
-  //       where: {
-  //         clubName: clubName,
-  //         category: "announcement",
-  //       },
-  //       order:[['createdAt','DESC']]
-  //     });
-
-  //     if (announcements.length === 0) {
-  //       return res
-  //         .status(404)
-  //         .json({ message: "No announcements found for this club" });
-  //     }
-
-  //     res.status(200).json({ announcements });
-  //   } catch (error) {
-  //     console.error("Error fetching announcements:", error);
-  //     res.status(500).json({ message: "Failed to fetch announcements" });
-  //   }
-  // });
 
   router.post("/clubs/join",  async (req, res) => {
     const { clubName } = req.body;

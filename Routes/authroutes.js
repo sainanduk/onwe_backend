@@ -7,11 +7,11 @@ const Users = require("../models/Users");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const sendEmail  = require("../mobile/middleware/otp");
+const sendVerificationEmail = require("../middlewares/sendVerificationEmail");
 const secret = process.env.SECRET_KEY;
 
 const crypto = require('crypto');
-const auth  = require("../models/auth");
+const auths  = require("../models/auth");
 const { Op } = require("sequelize");
 
 // router.post("/webhook", async (req, res) => {
@@ -144,12 +144,13 @@ router.post("/Adminsignin", async (req, res) => {
 // user sign up
 router.post('/signup' , async (req, res) => {
   const { name, email, password } = req.body;
-
+  console.log("signup", req.body);
+  
   try {
     if (!email || !password || !name) {
       throw new error("All fields are required");
     }
-    const alreadyExists = await auth.findOne({ where: { email:email } });
+    const alreadyExists = await auths.findOne({ where: { email:email } });
     if (alreadyExists) {
       return res
         .status(400)
@@ -161,7 +162,7 @@ router.post('/signup' , async (req, res) => {
       100000 + Math.random() * 900000
     ).toString();
 
-    const authUser = await auth.create({
+    const authUser = await auths.create({
       name,
       email,
       password: hashedPassword,
@@ -172,7 +173,7 @@ router.post('/signup' , async (req, res) => {
     // generateTokenAndSetCookie(res, authUser.id);
     console.log("verificationToken", verificationToken);
     
-    // sendVerificationEmail(Users.email, verificationToken);
+    sendVerificationEmail(email, verificationToken);
     res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -185,14 +186,17 @@ router.post('/signup' , async (req, res) => {
 
 // user email verifier
 router.post('/verifyEmail', async (req, res) => {
-  const { code, email } = req.body;
+  const { code, emailAddress } = req.body;
+  console.log("verifyEmail", req.body);
+  
   try {
-    const authUser = await auth.findOne({
-      email:email,
+    const authUser = await auths.findOne({
+      where:{email:emailAddress,
       verificationToken: code,
-      verificationTokenExpires: { $gt: Date.now() },
-    });
-    console.log(code, email, authUser);
+      verificationTokenExpires: {
+        [Op.gt]: Date.now()
+      }
+    }});
     
     if (!authUser) {
       return res.status(400).json({
@@ -204,7 +208,17 @@ router.post('/verifyEmail', async (req, res) => {
     authUser.isVerified = true;
     authUser.verificationToken = undefined;
     authUser.verificationTokenExpires = undefined;
+    console.log("authUser", authUser);
+  
+    
     await authUser.save();
+    await Users.findOne({where:{email:emailAddress}});
+    if(Users){
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
     await Users.create({
       username:authUser.name,
       email:authUser.email,
@@ -266,6 +280,7 @@ router.post('/login',async (req, res) => {
       token: token,
       status: "complete",
       username: user.username,
+      avatar: user.avatar,
     });
   } catch (error) {
     console.log({ success: false, message: "error in login ", error });

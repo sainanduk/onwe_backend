@@ -14,10 +14,8 @@ const auth = sequelize.define('auth', {
   isVerified: {type:DataTypes.BOOLEAN, defaultValue:false},
   resetPasswordToken:DataTypes.STRING,
   resetPasswordExpires:DataTypes.DATE,
-  verificationToken: DataTypes.STRING,
+  verificationToken:{ type:DataTypes.STRING},
   verificationTokenExpires: DataTypes.DATE
-},{
-    timestamps: true,
 });
 
 module.exports = auth;

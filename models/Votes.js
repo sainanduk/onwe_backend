@@ -18,7 +18,7 @@ const Votes = sequelize.define('votes', {
     allowNull: false,
   },
   userId: {
-    type: DataTypes.STRING,
+    type: DataTypes.UUID,
     references: {
       model: Users,
       key: 'id',

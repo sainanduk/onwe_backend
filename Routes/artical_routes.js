@@ -7,13 +7,7 @@ const uploadimages = createMulterUpload(); // Initialize multer middleware
 const verifier = require('../middlewares/verifier');
 const Users = require('../models/Users');
 
-const { includes } = require('../mobile/middleware/mobileverifier');
-const { User } = require('@clerk/clerk-sdk-node');
 const { Op } = require('sequelize');
-
-
-
-
 
 
 router.get('/artical', async (req, res) => {

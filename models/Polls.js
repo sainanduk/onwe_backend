@@ -13,7 +13,7 @@ const Polls = sequelize.define('polls', {
     allowNull: false,
   },
   createdBy: {
-    type: DataTypes.STRING,
+    type: DataTypes.UUID,
     allowNull: false,
   },
   createdAt: {

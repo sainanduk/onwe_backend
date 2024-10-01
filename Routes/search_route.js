@@ -85,6 +85,29 @@ router.get('/search/:user', async (req, res) => {
   }
 });
 
+router.get('/search/username/:user', async (req, res) => {
+  const {user } = req.params;
+  try {
+
+  
+    const users = await Users.findAll({
+      where: {
+        username: {
+          [Op.iLike]: `${user}%`
+        }
+      },
+      attributes: ['username'] 
+    });
+    if(users.length==0){
+      return res.json(false)
+    }
+    return res.json(true);
+  } catch (error) {
+    console.error('Error searching users by username:', error);
+    res.status(500).json({ message: 'Failed to search users' });
+  }
+});
+
 
 router.get('/search/hashtag/:tag', async (req, res) => {
   const { tag } = req.params;

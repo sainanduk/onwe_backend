@@ -1,90 +1,50 @@
-// const processimages = async (req, res, next) => {
-//   try {
-//     if (!req.files || req.files.length === 0) {
-//       req.mediaData = []; 
-//     } else {
-//       const files = req.files;
-//       req.mediaData = [];
-      
-//       for (const file of files) {
-//         req.mediaData.push({
-//           filename: file.originalname,
-//           mimetype: file.mimetype,
-//           size: file.size,
-//           base64String: file.buffer.toString('base64')
-//         });
-//       }
-//     }
-//     next();
-//   } catch (error) {
-//     console.error('Error processing images:', error);
-//     res.status(500).json({ message: 'Error processing images' });
-//   }
-// };
-
 const Minio = require('minio');
-const { v4: uuidv4 } = require('uuid'); // For generating unique object names
-dotenv = require('dotenv');
+const { v4: uuidv4 } = require('uuid');
+const dotenv = require('dotenv');
 dotenv.config();
 
 // Initialize the MinIO client
-const client = new Minio.Client({
-  endPoint: process.env.BUCKET_END_POINT,
-  accessKey: process.env.ACCESS_KEY,
-  secretKey: process.env.SECRET_KEY,
-  useSSL: true
+const minioClient = new Minio.Client({
+  endPoint: 'datab1.onwe.in',
+  useSSL: true,
+  accessKey: 'minioadmin',
+  secretKey: 'minioadmin',
 });
-33
-// Bucket name
-const bucketName = "testritu";
 
-const processimages = async (req, res, next) => {
+// Bucket name
+const bucketName = "bucket-test";
+
+async function processimages(req, res, next) {
+  req.mediaData = [];
+
   try {
     if (!req.files || req.files.length === 0) {
-      req.mediaData = [];
       next();
       return;
     }
-    
-    const files = req.files;
-    req.mediaData = [];
-    console.log("Received files");
+    const mediaPromises = req.files.map(async file => {
+      const buffer = file.buffer;
+      const mimeType = file.mimetype;
+      const imgName = `${uuidv4()}-${Date.now()}-${file.originalname}`;
 
-    // Check if bucket exists, and create if not
-    const bucketExists = await client.bucketExists(bucketName);
-    console.log(`Bucket exists: ${bucketExists}`);
-    if (!bucketExists) {
-      console.log(`Creating bucket: ${bucketName}`);
-      await client.makeBucket(bucketName);
-    }
-
-    // Process each file
-    for (const file of files) {
-      const objectName = uuidv4() + '-' + Date.now() + '-' + file.originalname;
-      console.log(`Uploading file: ${objectName}`);
-
-      await client.putObject(bucketName, objectName, file.buffer, file.size, {
-        'Content-Type': file.mimetype
+      // Upload file to MinIO
+      await minioClient.putObject(bucketName, imgName, buffer, {
+        'Content-Type': mimeType,
       });
 
-      console.log("Uploaded file:", objectName);
-      
-      // Generate presigned URL
-      const expiration = 10 * 365 * 24 * 60 * 60; // 10 years
-      const presignedUrl = await client.presignedGetObject(bucketName, objectName, expiration);
-      console.log("Received presigned URL:", presignedUrl);
+      // Generate static URL for public access and include MIME type as query parameter
+      const staticUrl = `https://datab1.onwe.in/${bucketName}/${imgName}?mimeType=${encodeURIComponent(mimeType)}`;
+      req.mediaData.push({ base64String: staticUrl });
+    });
 
-      // Add URL to response data
-      req.mediaData.push({
-        base64String: presignedUrl
-      });
-    }
+    await Promise.all(mediaPromises);
 
+    console.log("req media data", req.mediaData);
     next();
-  } catch (error) {
-    console.error('Error processing and uploading images:', error);
-    res.status(500).json({ message: 'Error processing and uploading images' });
+  } catch (err) {
+    console.error("Error processing images", err);
+    res.status(500).send("Error processing images");
   }
-};
+}
 
 module.exports = processimages;

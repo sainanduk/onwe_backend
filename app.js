@@ -49,34 +49,15 @@ const usernameRoutes = require('./Routes/username_route.js');
 const trending =require('./Routes/trending_route.js')
 
 
-
 //admin
 const createclub =require('./Admin_Routes/club_routes.js')
 const createevent =require('./Admin_Routes/event_routes.js')
 const createmagazine = require('./Admin_Routes/magazines_routes.js')
 
-//mobile
-const mobileexplore  =require('./mobile/Routes/mobile_explore_route.js')
-const mobileposts = require('./mobile/Routes/mobile_Post_route.js')
-const mobilemagazines =require('./mobile/Routes/mobile_magazines_route.js')
-const mobilesearch = require('./mobile/Routes/mobile_search_route.js')
-const mobileLogin = require("./mobile/signin.js");
-const mobileVerifier = require('./mobile/middleware/mobileverifier.js')
-const mobileevents = require('./mobile/Routes/mobile_event_routes.js')
-
-
-
-
-
-
-//mobile routes
-// app.use(mobileLogin);
-// app.use(mobileposts)
-// app.use(mobileexplore)
-// app.use(mobilemagazines)
-// app.use(mobilesearch)
-// app.use(mobileevents)
-//ci-cd
+//create club,create event,create magazine
+app.use(createclub)
+app.use(createevent)
+app.use(createmagazine)
 app.use(deploy)
 
 
@@ -96,9 +77,6 @@ app.use(artical)
 app.use(FollowersFollowing)
 
 //admin routes
-app.use(createclub)
-app.use(createevent)
-app.use(createmagazine)
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -113,20 +91,11 @@ Users.hasMany(Comments, { foreignKey: 'userId', as: 'userComments' });
 Users.hasMany(Clubs, { foreignKey: 'admin', as: 'adminClubs' });
 Users.hasMany(Posts, { as: 'posts', foreignKey: 'userid' });
 
-Users.hasMany(UserFollowers, { 
-  foreignKey: 'following', 
-  sourceKey: 'username',  
-  as: 'followers'          
+Users.hasMany(UserFollowers, { foreignKey: 'following', sourceKey: 'username', as: 'followers'          
 });
 
 // Associate Users with UserFollowers where the user is the one following others
-Users.hasMany(UserFollowers, { 
-  foreignKey: 'follower',  
-  sourceKey: 'username',   
-  as: 'followings'        
-});
-
-
+Users.hasMany(UserFollowers, { foreignKey: 'follower',sourceKey: 'username', as: 'followings'});
 
 Users.hasMany(ClubStatus, { foreignKey: 'userId' });
 
@@ -139,17 +108,6 @@ PostLikes.belongsTo(Users, { foreignKey: 'userId' });
 Clubs.hasMany(ClubStatus, { foreignKey: 'clubId' });
 ClubStatus.belongsTo(Clubs, { foreignKey: 'clubId' });
 ClubStatus.belongsTo(Users, { foreignKey: 'userId' });
-/*
-
-// Clubs model
-Clubs.hasMany(ClubStatus, { foreignKey: 'clubId', as: 'ClubStatuses' });
-ClubStatus.belongsTo(Clubs, { foreignKey: 'clubId', as: 'Club' });
-
-// ClubStatus model
-ClubStatus.belongsTo(Users, { foreignKey: 'userId', as: 'User' });
-Users.hasMany(ClubStatus, { foreignKey: 'userId', as: 'ClubStatuses' });
-
-*/
 
 PollOptions.hasMany(Votes, { foreignKey: 'pollOptionId', as: 'Votes' });
 Votes.belongsTo(PollOptions, { foreignKey: 'pollOptionId', as: 'PollOption' });
@@ -160,17 +118,10 @@ PollOptions.belongsTo(Polls, { foreignKey: 'pollId', as: 'Poll' });
 Polls.belongsTo(Users, { foreignKey: 'createdBy', as: 'User' });
 Users.hasMany(Polls, { foreignKey: 'createdBy', as: 'polls' });
 
-
-
-
-
-
 Comments.belongsTo(Posts, { foreignKey: 'postId' });
 Comments.belongsTo(Users, { foreignKey: 'userId' });
 
 Magazines.belongsTo(Admins, { foreignKey: 'owner' });
-
-
 
 
 const initializeDatabase = async () => {
@@ -185,20 +136,13 @@ const initializeDatabase = async () => {
   }
 };
 
-
 initializeDatabase();
-
-
 cron.schedule('0 * * * *', () => {
   console.log('Running scheduled job to delete old posts');
   deleteOldPosts();
 });
-
 cron.schedule('0 * * * *', () => {
-  console.log('Running scheduled job to trending');
-  
-  
-  
+  console.log('Running scheduled job to trending');  
   trendingClubs();
 });
 cron.schedule('0 * * * *', () => {
@@ -207,7 +151,7 @@ cron.schedule('0 * * * *', () => {
 });
 //working
 // const PORT =  process.env[2]|| process.env.PORT||3000;
-const PORT=3005
+// const PORT=3005
 app.listen(PORT, () => {
   console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });

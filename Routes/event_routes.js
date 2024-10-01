@@ -3,6 +3,8 @@ const router = express.Router();
 const Event = require('../models/Event');
 // Get all events
 router.get('/events', async (req, res) => {
+  console.log('Fetching events test...',req.session.userName);
+  
   try {
     const events = await Event.findAll({
       attributes: ["id",'title', 'media','dateOfEvent','description','time',"subtitle","category"]

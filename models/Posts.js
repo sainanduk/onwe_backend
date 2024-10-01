@@ -6,7 +6,7 @@ const Posts = sequelize.define('posts', {
   title: { type: DataTypes.STRING, allowNull: true },
   description: DataTypes.TEXT,
   likes: DataTypes.INTEGER,
-  userid: { type: DataTypes.STRING, references: { model: 'users', key: 'id' } },
+  userid: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
   media: { type: DataTypes.ARRAY(DataTypes.TEXT), allowNull: true },
   category: { type: DataTypes.STRING, defaultValue: null },
   tags: { type: DataTypes.STRING, allowNull: true },
