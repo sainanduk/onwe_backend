@@ -130,10 +130,10 @@ RemindEvent.belongsTo(Event, { foreignKey: 'eventId' });
 
 const initializeDatabase = async () => {
   try {
-    await sequelize.authenticate();
+    await sequelize.authenticate({alter:true});
     console.log('Connection to the database has been established successfully.');
 
-    await sequelize.sync(); 
+    await sequelize.sync({ alter: true }); 
     console.log('Database and tables have been synced successfully.');
   } catch (error) {
     console.error('Error initializing the database:', error);

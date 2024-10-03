@@ -23,7 +23,7 @@ router.get('/events', async (req, res) => {
 
     // If not found in cache, fetch from database
     const events = await Event.findAll({
-      where: { clubId: null }, // Filtering by clubId as per your requirement
+       // Filtering by clubId as per your requirement
       attributes: ["id", 'title', 'media', 'dateOfEvent', 'description', 'time', "link", "category"]
     });
 

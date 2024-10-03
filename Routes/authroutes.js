@@ -7,13 +7,10 @@ const Users = require("../models/Users");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const {sendVerificationEmail, sendPasswordResetEmail, sendResetSuccessEmail} = require("../middlewares/sendVerificationEmail");
-const secret = process.env.SECRET_KEY;
-
-const crypto = require('crypto');
+const auth = require("../models/auth");
 const auths  = require("../models/auth");
 const { Op } = require("sequelize");
-const auth = require("../models/auth");
+const mailSenderWorker = require("../mailtest");
 
 
 router.post("/Adminsignup", async (req, res) => {
@@ -92,23 +89,26 @@ router.post('/signup' , async (req, res) => {
     if (user) {
       return res
         .status(400)
-        .json({ success: false, message: "User already exists" });
+        .json({ success: false, message: "User already exists with this mail" });
     }
     const alreadyExists = await auths.findOne({ where: { email:email } });
     if (alreadyExists) {
     if (alreadyExists.isVerified) {
       return res
         .status(400)
-        .json({ success: false, message: "User already exists" });
+        .json({ success: false, message: "User already exists with this mail" });
     }
     else{
       const verificationToken = Math.floor(
         100000 + Math.random() * 900000
       ).toString();
+      const hashedPassword = await bcryptjs.hash(password, 12);
+      alreadyExists.name = name;
+      alreadyExists.password = hashedPassword;
       alreadyExists.verificationToken = verificationToken;
       alreadyExists.verificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; 
       await alreadyExists.save();
-      sendVerificationEmail(email, verificationToken);
+      await mailSenderWorker(email,verificationToken,"verifyEmail");
       return res.status(200).json({
         success: true,
         message: "Verification code sent successfully",
@@ -130,7 +130,7 @@ router.post('/signup' , async (req, res) => {
     // generateTokenAndSetCookie(res, authUser.id);
     console.log("verificationToken", verificationToken);
     
-    sendVerificationEmail(email, verificationToken);
+    await mailSenderWorker(email,verificationToken,"verifyEmail");
     res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -154,6 +154,12 @@ router.post('/verifyEmail', async (req, res) => {
         [Op.gt]: Date.now()
       }
     }});
+    if(authUser.isVerified){
+      return res.status(400).json({
+        success: false,
+        message: "Email already verified",
+      });
+    }
     console.log("authUser", authUser);
     
     if (!authUser) {
@@ -188,7 +194,7 @@ router.post('/verifyEmail', async (req, res) => {
     })
     console.log("user created");
     
-    // await sendWelcomeEmail(authUser.email, authUser.name);
+     await mailSenderWorker(emailAddress,authUser.name,"signupsuccess");
 
     res.status(200).json({
       success: true,
@@ -208,11 +214,18 @@ router.post('/forgotPassword', async (req, res) => {
   console.log(email);
   
   try {
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+    const userexisting = await Users.findOne({ where: { email } });
+    if (!userexisting) {
+      return res.status(400).json({ success: false, message: "User not found" });
+    }
     const user = await auths.findOne({ where: { email } });
 
     if (!user) {
       return res
-        .status(404)
+        .status(400)
         .json({ success: false, message: "User not found" });
     }
 
@@ -227,7 +240,7 @@ console.log(resetOTP);
     await user.save();
 
     // Send OTP instead of URL for resetting password
-    await sendPasswordResetEmail(user.email, resetOTP);
+    await mailSenderWorker(email,resetOTP,"resetPassword");
 
     res.status(200).json({
       success: true,
@@ -248,13 +261,14 @@ router.post('/resetPassword', async (req, res) => {
     }
 
     // Find user by OTP and ensure OTP is still valid (not expired)
-    const authUser = await auths.findOne({
+    const authUser = await auth.findOne({
       where: {
         resetPasswordToken: otp,
         resetPasswordExpires: { [Op.gt]: Date.now() }, // OTP expiration check
       },
     });
-
+    console.log("authUser", authUser);
+    
     if (!authUser) {
       return res
         .status(400)
@@ -262,7 +276,12 @@ router.post('/resetPassword', async (req, res) => {
     }
 
     // Hash the new password
+    
     const hashedPassword = await bcryptjs.hash(password, 12);
+    if(bcryptjs.compare(password, authUser.password)){
+      return res.status(400).json({ success: false, message: "New password cannot be the same as the old password" });
+    }
+
     authUser.password = hashedPassword;
 
     // Clear OTP and expiration after successful password reset
@@ -279,7 +298,9 @@ router.post('/resetPassword', async (req, res) => {
     console.log("Password reset successfully");
 
     // Send confirmation email
-    sendResetSuccessEmail(authUser.email);
+    console.log("authUser.email", authUser.email);
+    
+    await mailSenderWorker(authUser.email,null,"resetSuccess");
 
     res.status(200).json({
       success: true,
@@ -310,8 +331,8 @@ router.post('/login',async (req, res) => {
     });
     if (!user) {
       return res
-        .status(404)
-        .json({ success: false, message: "Invalid credentials" });
+        .status(400)
+        .json({ success: false, message: "User not found with Username or Email" });
     }
     
     

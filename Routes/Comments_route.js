@@ -131,6 +131,49 @@ router.post('/comments', verifier ,async (req, res) => {
 });
 
 // Route to delete a comment by ID
+router.post('/comments/report', verifier, async (req, res) => {
+  const { commentId } = req.body;
+  const userId = req.session.sub;
+  console.log("this is report comment");
+  
+  try {
+    // Find the comment to report
+    const comment = await Comments.findByPk(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+    console.log("this is report comment",comment.reportedBy);
+    
+    // Check if the user has already reported this comment
+    if (comment.reportedBy && comment.reportedBy.includes(userId)) {
+      console.log("this is report reported comment");
+      
+      return res.status(202).json({ message: 'You have already reported this comment' });
+    }
+    console.log("this is report reported comment log");
+    
+    // Increment the report counter
+    comment.reportCount = (comment.reportCount || 0) + 1;
+
+    // Add the user to the reportedBy array
+    comment.reportedBy = comment.reportedBy ? [...comment.reportedBy, userId] : [userId];
+
+    // Check if the report count exceeds the threshold
+    if (comment.reportCount > 15) {
+      await comment.destroy();
+      return res.status(200).json({ message: 'Comment deleted due to excessive reports' });
+    }
+    console.log("this is report comment save");
+    
+    // Save the updated comment
+    await comment.save();
+
+    res.status(200).json({ message: 'Comment reported successfully', reportCount: comment.reportCount });
+  } catch (error) {
+    console.error('Error reporting comment:', error);
+    res.status(500).json({ message: 'Failed to report comment' });
+  }
+});
 router.delete('/comments/:commentId', verifier,async (req, res) => {
   const { commentId } = req.params;
   const userid =req.session.sub
@@ -204,5 +247,7 @@ router.delete('/user/post/:postId/:commentId', async (req, res) => {
   }
 });
 
+
+// Route to report a comment
 
 module.exports = router;

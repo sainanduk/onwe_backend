@@ -7,7 +7,9 @@ const Comments = sequelize.define('comments', {
   userId: { type: DataTypes.UUID, references: { model: 'users', key: 'id' } },
   content: { type: DataTypes.TEXT, allowNull: false },
   parentId: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null },
-  createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+  createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+  reportCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  reportedBy: { type: DataTypes.ARRAY(DataTypes.UUID), defaultValue: [] }
 });
 
 module.exports = Comments;
