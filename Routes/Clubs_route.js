@@ -15,7 +15,7 @@ const { all } = require("./Post_route");
 const Event = require('../models/Event');
 
 //create posts and announcements in club
-  router.post('/clubs/posts', uploadImages, processimages, async (req, res) => {
+router.post('/clubs/posts', uploadImages, processimages, async (req, res) => {
     const { title, description, category, tags, clubname } = req.body;
     
     

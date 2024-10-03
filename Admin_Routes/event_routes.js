@@ -7,8 +7,7 @@ const processimages = require('../middlewares/processimages');
 const Admins = require('../models/Admins');
 const uploadimages = createMulterUpload();
 const Clubs = require('../models/Clubs');
-
-
+const redisClient = require('../Redis/redis');
 
 router.post('/Admin/events', uploadimages, processimages, async (req, res) => {
     const { title, subtitle,clubName, dateOfEvent, description, category,time} = req.body;
@@ -40,7 +39,7 @@ router.post('/Admin/events', uploadimages, processimages, async (req, res) => {
         updatedAt: new Date(),
       });
       
-      
+      redisClient.del('events');
       res.status(201).json({ message: 'Event created successfully',event: newEvent});
     } catch (error) {
       console.error('Error creating post:', error);

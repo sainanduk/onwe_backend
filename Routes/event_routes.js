@@ -24,7 +24,8 @@ router.get('/events', async (req, res) => {
     // If not found in cache, fetch from database
     const events = await Event.findAll({
        // Filtering by clubId as per your requirement
-      attributes: ["id", 'title', 'media', 'dateOfEvent', 'description', 'time', "link", "category"]
+      attributes: ["id", 'title', 'media', 'dateOfEvent', 'description', 'time', "link", "category"],
+      order: [['dateOfEvent', 'ASC']],
     });
 
     // Store the data in Redis cache for 2 hours (7200 seconds)
